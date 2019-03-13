@@ -1,5 +1,5 @@
 Alpha PM
-Bravo AM
+Bravo PM
 Charlie AM
-Delta PM
+Delta NA
 Echo NA

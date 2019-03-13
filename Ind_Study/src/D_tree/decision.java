@@ -24,14 +24,16 @@ public class decision {
 		
 		// then pick the first item in the constrained list and assign it to this location
 		try {
-		Item item = getConstrainedChoices().get(0); 
-		setItemAssigned(item);
-		
-		// Remove item selected from unconstrained list
-		unconChoices.remove(item);
+			Item item = getConstrainedChoices().get(0); 
+			setItemAssigned(item);
+			
+			// Remove item selected from unconstrained list
+			unconChoices.remove(item);
 		}
-		catch(Exception OutofBoundsException){
-			System.out.println("Assignment error. Empty list.");
+		catch(Exception e){
+			Item noItem = new Item("No Item Assigned to location.");
+			setItemAssigned(noItem);
+			//System.out.println("Assignment error.");
 		}
 		
 	}
