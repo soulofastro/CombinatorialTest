@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 /*
  *  An item is equivalent to a Professor, class, or any object that can be placed into something.
  *  A location is equivalent to a class, time slot, or any thing that an object can be placed into.
@@ -18,7 +18,7 @@ import java.util.LinkedList;
 public class CombinatorialTest 
 { 
 	
-	public static LinkedList<decision> decisionNumber = new LinkedList<decision>();	
+	public static ArrayList<decision> decisionNumber = new ArrayList<decision>();	
 	
 	public static void main(String args[]) throws FileNotFoundException, IOException, Exception { 
 		
@@ -80,7 +80,7 @@ public class CombinatorialTest
     }
 	
 	/* This Method prints the linked list decision tree */
-	private static void printDecisionTree(LinkedList<decision> decisionNumber) {
+	private static void printDecisionTree(ArrayList<decision> decisionNumber) {
     	try {
 			for(int i=0; i<decisionNumber.size(); i++) {	
 				Integer y = i+1;
@@ -146,7 +146,7 @@ public class CombinatorialTest
 		//		if I want to assign a new item to a later decision/location
 		//			if it's not in the original unconstrained list, it's a brand new item.
 		//			then just update the assigned item at the location 
-			    if(!decisionNumber.getFirst().getUnconstrainedChoices().contains(newItem)) {
+			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
 			    	System.out.println("you are at line 136");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
@@ -194,7 +194,7 @@ public class CombinatorialTest
 	}
 	
 	/* This methods finds the location index for earliest assignment of newItem */
-    private static Integer findEarliestAssignment(LinkedList<decision> decisionList, Item newItem) {
+    private static Integer findEarliestAssignment(ArrayList<decision> decisionList, Item newItem) {
     	Integer locationIndex = null;
     	for(int i=0; i<decisionList.size(); i++) {
     		if(decisionList.get(i).getItemAssigned().equals(newItem)) {
