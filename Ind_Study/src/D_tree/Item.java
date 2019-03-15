@@ -3,7 +3,7 @@ package D_tree;
 public class Item {
 	
 	private String itemName = "";
-	private String[] itemProperites; // placeholder until I can think of something better
+	private String[] itemProperties; // placeholder until I can think of something better
 									 // This is where I will store "professor preferences"
 									 // and/or "class requirements"
 
@@ -22,11 +22,10 @@ public class Item {
 	public void setItemName(String itemName) {
 		this.itemName = itemName;
 	}
-	public String[] getItemProperites() {
-		return itemProperites;
+	public String[] getItemProperties() {
+		return itemProperties;
 	}
-	public void setItemProperites(String[] itemProperites) {
-		this.itemProperites = itemProperites;
+	public void setItemProperties(String[] itemProperites) {
+		this.itemProperties = itemProperites;
 	}
-
 }

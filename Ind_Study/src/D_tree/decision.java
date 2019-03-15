@@ -73,13 +73,20 @@ public class decision {
 	public void setConstrainedChoices(ArrayList<Item> unconstrainedChoices) {
 		ArrayList<Item> conChoice = new ArrayList<Item>(unconstrainedChoices);
 		ArrayList<Item> newList = new ArrayList<Item>();
+		
+		// add mandatory choices to list first, then add other choices
+		if(this.location.getMandatoryAssignments().size() > 0) {
+			ArrayList<Item> manAss = new ArrayList<Item>(this.location.getMandatoryAssignments());
+			newList.addAll(manAss);
+		}
+		
 		for (int i=0; i < conChoice.size(); i++ ) {
-			for(int j=0; j < conChoice.get(i).getItemProperites().length; j++) {
+			for(int j=0; j < conChoice.get(i).getItemProperties().length; j++) {
 				for(int k=0; k < this.location.getLocationCriteria().length; k++) {
-					if(conChoice.get(i).getItemProperites()[j].equals(this.location.getLocationCriteria()[k])) {
+					if(conChoice.get(i).getItemProperties()[j].equals(this.location.getLocationCriteria()[k])) {
 						newList.add(conChoice.get(i));
 					}
-					else if(conChoice.get(i).getItemProperites()[j].equals("NA")) {
+					else if(conChoice.get(i).getItemProperties()[j].equals("NA")) {
 						newList.add(conChoice.get(i));
 					}
 				}
