@@ -74,8 +74,8 @@ public class CombinatorialTest
 //    	changeDecisionSelection(locations.get(2), charlie, locations);
     	
     	/* Display Locations and item assigned to each location after testing change */
-    	System.out.println("\nList after test case change:\n");
-    	printDecisionTree(decisionNumber);
+//    	System.out.println("\nList after test case change:\n");
+//    	printDecisionTree(decisionNumber);
        
     }
 	
@@ -157,11 +157,11 @@ public class CombinatorialTest
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
 			    	System.out.println("you are at line 143");
 		//			if it wasn't assigned earlier, then I change this decision
-					// insert original item back into unconstrained list of choices
+					// insert original item back into unconstrained list of choices (turns out this isn't necessary)
 		//				I assign the new item to this location
 					decisionNumber.get(locationIndex).setItemAssigned(newItem);
 
-		//					then I rebuild this decision linked list starting after this decision (making sure to remove the new item from the unconstrained list first, which it should automatically)
+		//					then I rebuild this decision linked list starting after this decision (making sure to remove the new item from the unconstrained list first)
 					decisionNumber.get(locationIndex).getUnconstrainedChoices().remove(newItem);
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(locationIndex).getUnconstrainedChoices());
 					locationIndex++;
@@ -176,12 +176,12 @@ public class CombinatorialTest
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().setMandatoryAssignments(manAss);
 					Integer earliestLocationIndex = findEarliestAssignment(decisionNumber, newItem);
-		//				I assign the new item to this location (clear this locations constrained list and add new item to first spot).
+		//				I assign the new item to this location and add the old assignment back to the unconstrained choices list
 					oldItem = decisionNumber.get(earliestLocationIndex).getItemAssigned();
 					decisionNumber.get(earliestLocationIndex).setItemAssigned(newItem);
 					decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().add(oldItem);
 					decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().remove(newItem);				
-		//					then I rebuild my list starting from that earlier location, making sure to remove the new item from the unconstrained list first
+		//					then I rebuild my list starting from that earlier location
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices());
 					locationIndex++;
 					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(earliestLocationIndex, locationList.size()));
