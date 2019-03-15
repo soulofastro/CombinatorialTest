@@ -56,22 +56,26 @@ public class CombinatorialTest
     	/* Change a decision and display updated list */
     	/* arguments are changeDecisionSelection("where you want to put the new item", "the new item you want to insert", "complete location list")*/
     	/* TEST CASE 1 - add brand new item */
-    	//Item alpha_2 = new Item("Alpha_2");
-    	//String[] AlphaProp = {"Alpha_2", "NA"};
-    	//alpha_2.setItemProperties(AlphaProp);
-    	//changeDecisionSelection(locations.get(1), alpha_2, locations);
+//    	Item alpha_2 = new Item("Alpha_2");
+//    	String[] AlphaProp = {"Alpha_2", "NA"};
+//    	alpha_2.setItemProperties(AlphaProp);
+//    	changeDecisionSelection(locations.get(1), alpha_2, locations);
     	
     	/* TEST CASE 2 - change first appearance of item */
-    	//Item echo = decisionNumber.get(4).getItemAssigned();
-    	//changeDecisionSelection(locations.get(1), echo, locations);
+//    	Item echo = decisionNumber.get(4).getItemAssigned();
+//    	changeDecisionSelection(locations.get(1), echo, locations);
     	
     	/* TEST CASE 3 - change earlier appearance of item */
-    	//Item delta = decisionNumber.get(1).getItemAssigned();
-    	//changeDecisionSelection(locations.get(4), delta, locations);
+//    	Item delta = decisionNumber.get(1).getItemAssigned();
+//    	changeDecisionSelection(locations.get(4), delta, locations);
+    	
+    	/* TEST CASE 4 - add new item to location that does not meet criteria */
+//    	Item charlie = decisionNumber.get(0).getItemAssigned();
+//    	changeDecisionSelection(locations.get(2), charlie, locations);
     	
     	/* Display Locations and item assigned to each location after testing change */
-    	//System.out.println("\nList after test case change:\n");
-    	//printDecisionTree(decisionNumber);
+    	System.out.println("\nList after test case change:\n");
+    	printDecisionTree(decisionNumber);
        
     }
 	
@@ -146,8 +150,8 @@ public class CombinatorialTest
 			    	System.out.println("you are at line 136");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
-			    	// maybe give the user to regenerate the list from here? 
-			    	// changing this choice does not effect later decisions
+			    	// maybe give the user the option to regenerate the list from here? 
+			    	// changing this choice does not immediately effect later decisions
 			    }
 		//		I must check and see if that item was assigned earlier (if new item is not in location's constrained list, it was)
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
@@ -159,7 +163,6 @@ public class CombinatorialTest
 
 		//					then I rebuild this decision linked list starting after this decision (making sure to remove the new item from the unconstrained list first, which it should automatically)
 					decisionNumber.get(locationIndex).getUnconstrainedChoices().remove(newItem);
-					//decisionNumber.get(locationIndex).getUnconstrainedChoices().remove(oldItem);
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(locationIndex).getUnconstrainedChoices());
 					locationIndex++;
 					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(locationIndex, locationList.size()));
