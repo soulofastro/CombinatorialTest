@@ -71,13 +71,14 @@ public class CombinatorialTest
 //    	changeDecisionSelection(locations.get(1), alpha_2, locations);
     	
     	/* TEST CASE 2 - change first appearance of item */
-//    	Item echo = decisionNumber.get(4).getItemAssigned();
-//    	changeDecisionSelection(locations.get(1), echo, locations);
+//    	System.out.println("TEST 2: Change first decision to delta. Update rest of list");
+//    	Item delta = decisionNumber.get(4).getItemAssigned();
+//    	changeDecisionSelection(locations.get(0), delta, locations);
     	
     	/* TEST CASE 3 - change earlier appearance of item */
-//    	Item delta = decisionNumber.get(1).getItemAssigned();
-//    	changeDecisionSelection(locations.get(4), delta, locations);
-//    	
+//    	Item bravo = decisionNumber.get(0).getItemAssigned();
+//    	changeDecisionSelection(locations.get(4), bravo, locations);
+    	
     	/* TEST CASE 4 - add new item to location that does not meet criteria */
 //    	Item charlie = decisionNumber.get(0).getItemAssigned();
 //    	changeDecisionSelection(locations.get(2), charlie, locations);
@@ -126,22 +127,36 @@ public class CombinatorialTest
     		}
     	}
     	// Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.
-    	for(decision secondPass: decisionNumber) {
+    	/*for(decision secondPass: decisionNumber) {
     		if(secondPass.getDecisionSelected().contentEquals(NA)) {
     			Item item = secondPass.getConstrainedChoices().get(0);
     			secondPass.setItemAssigned(item);
     			// Now remove that item from the constrained choice lists
     			for(decision eachDecision: decisionNumber) {
     				eachDecision.getConstrainedChoices().remove(item);
-    				eachDecision.getUnconstrainedChoices().remove(item);
+    				//eachDecision.getUnconstrainedChoices().remove(item);
+    			}
+    		}
+    	}*/
+    	for(int i=0;i<decisionNumber.size();i++) {
+       		if(decisionNumber.get(i).getDecisionSelected().contentEquals(NA)) {
+    			Item item = decisionNumber.get(i).getConstrainedChoices().get(0);
+    			decisionNumber.get(i).setItemAssigned(item);
+    			// Now remove that item from the choice lists
+    			for(int j=i;j<decisionNumber.size();j++) {
+    				decisionNumber.get(j).getConstrainedChoices().remove(item);
+    				decisionNumber.get(j).getUnconstrainedChoices().remove(item);
     			}
     		}
     	}
     	// Finally, go back and add the decided items back to their constrained lists if it's not already in them
     	for(decision finalPass: decisionNumber) {
     		if(!finalPass.getConstrainedChoices().contains(finalPass.getItemAssigned())) {
-    			finalPass.getConstrainedChoices().add(0, finalPass.getItemAssigned());
+    			finalPass.getConstrainedChoices().add(0,finalPass.getItemAssigned());
+    		}
+    		if(!finalPass.getUnconstrainedChoices().contains(finalPass.getItemAssigned())) {
     			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
+    			Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator);
     		}
     	}
 	}
@@ -163,7 +178,7 @@ public class CombinatorialTest
 				for(int j=0; j<newItem.getItemProperties().length; j++) {
 					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().length; k++) {
 /*need to update this part bc of more properties and criteria */
-System.out.println("This section at line 141 needs to be updated!!! It only checks to see if it fits at least one criteria");
+System.out.println("This section at line 166 needs to be updated!!! It only checks to see if it fits at least one criteria");
 						if(newItem.getItemProperties()[j].equals(decisionNumber.get(i).getLocation().getLocationCriteria()[k]) || newItem.getItemProperties()[j].equals("[NA]")) {
 							meetsCriteria = true;
 							locationIndex = i;
@@ -183,7 +198,7 @@ System.out.println("This section at line 141 needs to be updated!!! It only chec
 		//			if it's not in the original unconstrained list, it's a brand new item.
 		//			then just update the assigned item at the location 
 			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
-			    	//System.out.println("you are at line 136");
+			    	System.out.println("^^^^^^you are at line 186. Unconstrained choices doesn't contain new item.");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
 			    	// maybe give the user the option to regenerate the list from here? 
@@ -191,7 +206,7 @@ System.out.println("This section at line 141 needs to be updated!!! It only chec
 			    }
 		//		I must check and see if that item was assigned earlier (if new item is not in location's constrained list, it was)
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
-			    	//System.out.println("you are at line 143");
+			    	System.out.println("^^^^^^you are at line 194. Constrained choices contains new item. Assigned earlier chech = true");
 		//			if it wasn't assigned earlier, then I change this decision
 					// insert original item back into unconstrained list of choices (turns out this isn't necessary)
 		//				I assign the new item to this location
@@ -207,7 +222,7 @@ System.out.println("This section at line 141 needs to be updated!!! It only chec
 				}
 				else {
 		//			if it was assigned earlier, then I change that earlier decision and make this later decision/location item assignment a hard constraint
-					//System.out.println("you are at line 163");
+					System.out.println("^^^^^^^you are at line 210. Making hard constraint at location.");
 					ArrayList<Item> manAss = new ArrayList<Item>();
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().setMandatoryAssignments(manAss);
