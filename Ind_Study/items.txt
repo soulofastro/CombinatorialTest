@@ -1,5 +1,6 @@
-Alpha PM
-Bravo PM
-Charlie AM
-Delta NA
-Echo NA
+Alpha [PM] [C3]
+Bravo [NA]
+Charlie [AM] [C2]
+Delta [PM]
+Echo [NA]
+Fox [PM]

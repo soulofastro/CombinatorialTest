@@ -1,8 +1,9 @@
 package D_tree;
-
+import java.util.Comparator;
 import java.util.ArrayList;
 
-public class Location {
+@SuppressWarnings("rawtypes")
+public class Location implements Comparable{
 	
 	private String locationName = "";
 	private String[] locationCriteria;  // string array for now until i figure out a 
@@ -10,6 +11,7 @@ public class Location {
 										// "class requirements" and/or time slot requirements
 	private ArrayList<Item> mandatoryAssignments = new ArrayList<Item>();
 
+	
 	/* constructors */
 	public Location() {
 	}
@@ -39,5 +41,18 @@ public class Location {
 	public void assignMandatoryItem(Item item) {
 		this.mandatoryAssignments.add(item);
 	}
+	@Override
+	public int compareTo(Object o) {
+		int compareLength=((Location)o).getLocationCriteria().length;
+		return this.locationCriteria.length-compareLength;
+	}
+	
+	public static Comparator<Location> critComparator = new Comparator<Location>(){
+		public int compare(Location L1, Location L2) {
+			Integer L1Length = L1.getLocationCriteria().length;
+			Integer L2Length = L2.getLocationCriteria().length;
+			return L2Length.compareTo(L1Length);
+		}
+	};
 
 }

@@ -1,6 +1,9 @@
 package D_tree;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.LinkedHashSet;
 
 public class decision {
@@ -22,9 +25,11 @@ public class decision {
 		// create a list of constrained choices from a list of unconstrained choices
 		setConstrainedChoices(unconClone);
 		
-		// then pick the first item in the constrained list and assign it to this location
+		// old way: then pick the first item in the constrained list and assign it to this location.
+		//			this is now done after first pass through.
+		// NEW WAY: Pick item with the most occurrences in the constrained list
 		try {
-			Item item = getConstrainedChoices().get(0); 
+			Item item = getBestFit();
 			setItemAssigned(item);
 			
 			// Remove item selected from unconstrained list
@@ -38,6 +43,49 @@ public class decision {
 		
 	}
 	
+	private Item getBestFit() {
+		// I need to look at the constrained list and determine which item has appeared the most, then return that item
+		HashMap<Item,Integer> elementCountMap = new HashMap<Item,Integer>();
+		
+		for(Item i: constrainedChoices) {
+			if(elementCountMap.containsKey(i))
+				elementCountMap.put(i, elementCountMap.get(i)+1);
+			else
+				elementCountMap.put(i, 1);
+		}
+		Item element = new Item();
+		int frequency = 1;
+		
+		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
+		
+		//StringBuffer NA = new StringBuffer("[NA]");
+		for (Entry<Item, Integer> entry: entrySet) {
+			if(entry.getValue() > frequency /*&& entry.getKey().getItemProperties()[1].contentEquals(NA)*/) {
+				element = entry.getKey();
+				frequency = entry.getValue();
+			}
+		}
+		/******
+        if(frequency > 1)
+        {
+        	System.out.println("========================");
+            System.out.println("Input Array : "); printConstrainedChoices();
+            System.out.println("The most frequent element : "+element.getItemName());
+            System.out.println("Its frequency : "+frequency); 
+            System.out.println("========================");
+        }
+        else
+        {
+        	System.out.println("========================");
+            System.out.println("Input Array : "); printConstrainedChoices();
+            System.out.println("No frequent element. All elements are unique."); 
+            System.out.println("=========================");
+        }
+		******/
+		//System.out.println("ELEMENT: "+ element.getItemName());
+		return element;
+	}
+
 	public String getDecisionSelected() {
 		return itemAssigned.getItemName(); 
 	}
@@ -75,6 +123,7 @@ public class decision {
 		ArrayList<Item> newList = new ArrayList<Item>();
 		
 		// add mandatory choices to list first, then add other choices
+		// (update hashmap of mandatory assignments to be super large so it gets chosen first?)
 		if(this.location.getMandatoryAssignments().size() > 0) {
 			ArrayList<Item> manAss = new ArrayList<Item>(this.location.getMandatoryAssignments());
 			newList.addAll(manAss);
@@ -83,20 +132,22 @@ public class decision {
 		for (int i=0; i < conChoice.size(); i++ ) {
 			for(int j=0; j < conChoice.get(i).getItemProperties().length; j++) {
 				for(int k=0; k < this.location.getLocationCriteria().length; k++) {
+					/* if this item element contains a ',' then break it up and compare the pieces to the criteria*/
 					if(conChoice.get(i).getItemProperties()[j].equals(this.location.getLocationCriteria()[k])) {
 						newList.add(conChoice.get(i));
 					}
-					else if(conChoice.get(i).getItemProperties()[j].equals("NA")) {
-						newList.add(conChoice.get(i));
+					else if(conChoice.get(i).getItemProperties()[j].equals("[NA]")) {
+						if(!newList.contains(conChoice.get(i)))
+							newList.add(conChoice.get(i));
 					}
 				}
 			}
 		}
 		// this is where I would build my sublist of allowed choices
 		// using location criteria and item properties
-		LinkedHashSet<Item> set = new LinkedHashSet<Item>(newList);
-		newList.clear();
-		newList.addAll(set);
+		//LinkedHashSet<Item> set = new LinkedHashSet<Item>(newList);
+		//newList.clear();
+		//newList.addAll(set);
 		this.constrainedChoices = newList;
 	}
 	

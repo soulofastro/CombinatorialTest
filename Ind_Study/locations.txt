@@ -1,5 +1,5 @@
-0 AM
-1 AM
-2 PM
-3 PM
-4 PM
+0 [AM] [C0] [C1]
+1 [AM] [C2]
+2 [PM]
+3 [PM] [C3]
+4 [PM]

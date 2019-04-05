@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.ArrayList;
+import java.util.Collections;
 /*
  *  An item is equivalent to a Professor, class, or any object that can be placed into something.
  *  A location is equivalent to a class, time slot, or any thing that an object can be placed into.
@@ -32,14 +32,23 @@ public class CombinatorialTest
     	*/
     	
     	items = readItemFile("items.txt");
+    	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
     	for (Item item : items) {
-    		System.out.println("Item Name: "+ item.getItemName());
+    		System.out.print("Item Name: "+ item.getItemProperties()[0]);
+    		for (int i=1;i<item.getItemProperties().length;i++) {
+    			System.out.print(" "+item.getItemProperties()[i]);
+    		}
+    		System.out.println();
     	}
     	System.out.println();
     	
     	locations = readLocationFile("locations.txt");
     	for (Location location: locations) {
-    		System.out.println("Location name: "+ location.getLocationName());
+    		System.out.print("Location name: "+ location.getLocationCriteria()[0]);
+    		for (int i=1; i<location.getLocationCriteria().length;i++) {
+    			System.out.print(" "+ location.getLocationCriteria()[i]);
+    		}
+    		System.out.println();
     	}
     	System.out.println();
     	
@@ -68,7 +77,7 @@ public class CombinatorialTest
     	/* TEST CASE 3 - change earlier appearance of item */
 //    	Item delta = decisionNumber.get(1).getItemAssigned();
 //    	changeDecisionSelection(locations.get(4), delta, locations);
-    	
+//    	
     	/* TEST CASE 4 - add new item to location that does not meet criteria */
 //    	Item charlie = decisionNumber.get(0).getItemAssigned();
 //    	changeDecisionSelection(locations.get(2), charlie, locations);
@@ -99,16 +108,41 @@ public class CombinatorialTest
 
 	/*This is where I generate the decision tree */
 	public static void generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
+		// This is the first pass through the tree
     	for (int i=0; i<locations.size(); i++) {    		
-    		decision decision_choice = new decision(locations.get(i));
-    		
+    		decision decision_choice = new decision(locations.get(i)); 		
     		ArrayList<Item> itemClone = new ArrayList<Item>(items);
-    		decision_choice.setUnconstrainedChoices(itemClone);
-    		
-    		decision_choice.setDecisionSelection(items);
-    		  		
-    		decisionNumber.add(decision_choice);
-    		
+    		decision_choice.setUnconstrainedChoices(itemClone);		
+    		decision_choice.setDecisionSelection(items);		  		
+    		decisionNumber.add(decision_choice); 		
+    	}
+    	// Iterate through the tree, removing assigned items from all constrained choice lists
+    	StringBuffer NA = new StringBuffer("null");
+    	for(decision choice: decisionNumber) {
+    		if(!choice.getDecisionSelected().contentEquals(NA)) {
+    			for(decision eachDecision: decisionNumber) {
+    				eachDecision.getConstrainedChoices().remove(choice.getItemAssigned());
+    			}
+    		}
+    	}
+    	// Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.
+    	for(decision secondPass: decisionNumber) {
+    		if(secondPass.getDecisionSelected().contentEquals(NA)) {
+    			Item item = secondPass.getConstrainedChoices().get(0);
+    			secondPass.setItemAssigned(item);
+    			// Now remove that item from the constrained choice lists
+    			for(decision eachDecision: decisionNumber) {
+    				eachDecision.getConstrainedChoices().remove(item);
+    				eachDecision.getUnconstrainedChoices().remove(item);
+    			}
+    		}
+    	}
+    	// Finally, go back and add the decided items back to their constrained lists if it's not already in them
+    	for(decision finalPass: decisionNumber) {
+    		if(!finalPass.getConstrainedChoices().contains(finalPass.getItemAssigned())) {
+    			finalPass.getConstrainedChoices().add(0, finalPass.getItemAssigned());
+    			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
+    		}
     	}
 	}
 	
@@ -128,7 +162,9 @@ public class CombinatorialTest
         //		if not tell user they can't assign that item to that location.
 				for(int j=0; j<newItem.getItemProperties().length; j++) {
 					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().length; k++) {
-						if(newItem.getItemProperties()[j].equals(decisionNumber.get(i).getLocation().getLocationCriteria()[k]) || newItem.getItemProperties()[j].equals("NA")) {
+/*need to update this part bc of more properties and criteria */
+System.out.println("This section at line 141 needs to be updated!!! It only checks to see if it fits at least one criteria");
+						if(newItem.getItemProperties()[j].equals(decisionNumber.get(i).getLocation().getLocationCriteria()[k]) || newItem.getItemProperties()[j].equals("[NA]")) {
 							meetsCriteria = true;
 							locationIndex = i;
 						}
@@ -147,7 +183,7 @@ public class CombinatorialTest
 		//			if it's not in the original unconstrained list, it's a brand new item.
 		//			then just update the assigned item at the location 
 			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
-			    	System.out.println("you are at line 136");
+			    	//System.out.println("you are at line 136");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
 			    	// maybe give the user the option to regenerate the list from here? 
@@ -155,7 +191,7 @@ public class CombinatorialTest
 			    }
 		//		I must check and see if that item was assigned earlier (if new item is not in location's constrained list, it was)
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
-			    	System.out.println("you are at line 143");
+			    	//System.out.println("you are at line 143");
 		//			if it wasn't assigned earlier, then I change this decision
 					// insert original item back into unconstrained list of choices (turns out this isn't necessary)
 		//				I assign the new item to this location
@@ -171,7 +207,7 @@ public class CombinatorialTest
 				}
 				else {
 		//			if it was assigned earlier, then I change that earlier decision and make this later decision/location item assignment a hard constraint
-					System.out.println("you are at line 163");
+					//System.out.println("you are at line 163");
 					ArrayList<Item> manAss = new ArrayList<Item>();
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().setMandatoryAssignments(manAss);
@@ -214,7 +250,7 @@ public class CombinatorialTest
 		FileReader fr = new FileReader(filename);
         BufferedReader textReader = new BufferedReader(fr);
         ArrayList<Item> itemsFromFile = new ArrayList<Item>();
-        
+        ArrayList<Item> itemsWithNA = new ArrayList<Item>();
         
         int counter = 0;
         while (textReader.ready()) {
@@ -227,6 +263,17 @@ public class CombinatorialTest
         textReader.close();
         if(counter <= 0)
                 throw new Exception("Error. "+filename+" is empty."); // if no lines read, throw empty file exception
+        
+        /* Sort items from most to least constrained according to length of their properties (aka requirements) */
+        StringBuffer NA = new StringBuffer("[NA]");
+        for(Item item: itemsFromFile) {
+        	if(item.getItemProperties()[1].contentEquals(NA)) {
+        		itemsWithNA.add(item);
+        	}
+        }
+        itemsFromFile.removeAll(itemsWithNA);
+        Collections.sort(itemsFromFile, Item.PropComparator);
+        itemsFromFile.addAll(itemsWithNA);
         return itemsFromFile;
     }
     
@@ -247,6 +294,9 @@ public class CombinatorialTest
         textReader.close();
         if(counter <= 0)
                 throw new Exception("Error. "+filename+" is empty."); // if no lines read, throw empty file exception
+        
+        /* Sort locations from most to least constrained according to length of their criteria (aka requirements) */
+        Collections.sort(locationsFromFile, Location.critComparator);
         return locationsFromFile;
     }
 } 
