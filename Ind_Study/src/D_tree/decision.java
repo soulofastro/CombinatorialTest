@@ -55,12 +55,14 @@ public class decision {
 		}
 		Item element = new Item();
 		int frequency = 1;
+		int oldFrequency = 1;
 		
 		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
 		
 		//StringBuffer NA = new StringBuffer("[NA]");
 		for (Entry<Item, Integer> entry: entrySet) {
-			if(entry.getValue() > frequency /*&& entry.getKey().getItemProperties()[1].contentEquals(NA)*/) {
+			if(entry.getValue() > frequency /*&& frequency > oldFrequency*/) {
+				oldFrequency = frequency;
 				element = entry.getKey();
 				frequency = entry.getValue();
 			}

@@ -122,7 +122,7 @@ public class CombinatorialTest
     	for(decision choice: decisionNumber) {
     		if(!choice.getDecisionSelected().contentEquals(NA)) {
     			for(decision eachDecision: decisionNumber) {
-    				eachDecision.getConstrainedChoices().remove(choice.getItemAssigned());
+    				eachDecision.getConstrainedChoices().removeAll(Collections.singleton(choice.getItemAssigned()));
     			}
     		}
     	}
@@ -142,17 +142,18 @@ public class CombinatorialTest
        		if(decisionNumber.get(i).getDecisionSelected().contentEquals(NA)) {
     			Item item = decisionNumber.get(i).getConstrainedChoices().get(0);
     			decisionNumber.get(i).setItemAssigned(item);
-    			// Now remove that item from the choice lists
-    			for(int j=i;j<decisionNumber.size();j++) {
-    				decisionNumber.get(j).getConstrainedChoices().remove(item);
-    				decisionNumber.get(j).getUnconstrainedChoices().remove(item);
+    			decisionNumber.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
+    			// Now remove that item from the choice lists that follow
+    			for(int j=i+1;j<decisionNumber.size();j++) {
+    				decisionNumber.get(j).getConstrainedChoices().removeAll(Collections.singleton(item));
+    				decisionNumber.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(item));
     			}
     		}
     	}
     	// Finally, go back and add the decided items back to their constrained lists if it's not already in them
     	for(decision finalPass: decisionNumber) {
     		if(!finalPass.getConstrainedChoices().contains(finalPass.getItemAssigned())) {
-    			finalPass.getConstrainedChoices().add(0,finalPass.getItemAssigned());
+    			finalPass.getConstrainedChoices().add(finalPass.getItemAssigned());
     		}
     		if(!finalPass.getUnconstrainedChoices().contains(finalPass.getItemAssigned())) {
     			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
