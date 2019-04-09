@@ -173,8 +173,8 @@ public class CombinatorialTest
     		}
     		if(!finalPass.getUnconstrainedChoices().contains(finalPass.getItemAssigned())) {
     			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
-    			if(finalPass.getUnconstrainedChoices().size() > 2)
-    				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator);
+    			/*if(finalPass.getConstrainedChoices().size() == 1)
+    				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator); */
     		}
     	}
 	}

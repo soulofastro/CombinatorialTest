@@ -34,8 +34,12 @@ public class Item implements Comparable{
 
 	@Override
 	public int compareTo(Object arg0) {
+		
 		int compareLength=((Item)arg0).getItemProperties().length;
-		return this.itemProperties.length-compareLength;
+		if(compareLength > 0)
+			return this.itemProperties.length-compareLength;
+		else
+			return 0;
 	}
 	
 	public static Comparator<Item> PropComparator = new Comparator<Item>(){
