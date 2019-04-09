@@ -71,13 +71,13 @@ public class CombinatorialTest
 //    	changeDecisionSelection(locations.get(1), alpha_2, locations);
     	
     	/* TEST CASE 2 - change first appearance of item */
-//    	System.out.println("TEST 2: Change first decision to delta. Update rest of list");
-//    	Item delta = decisionNumber.get(4).getItemAssigned();
-//    	changeDecisionSelection(locations.get(0), delta, locations);
+//    	System.out.println("TEST 2: Change first decision. Update rest of list");
+//    	Item newG = decisionNumber.get(1).getItemAssigned();
+//    	changeDecisionSelection(locations.get(2), newG, locations);
     	
     	/* TEST CASE 3 - change earlier appearance of item */
-//    	Item bravo = decisionNumber.get(0).getItemAssigned();
-//    	changeDecisionSelection(locations.get(4), bravo, locations);
+//    	Item echo = decisionNumber.get(4).getItemAssigned();
+//    	changeDecisionSelection(locations.get(3), echo, locations);
     	
     	/* TEST CASE 4 - add new item to location that does not meet criteria */
 //    	Item charlie = decisionNumber.get(0).getItemAssigned();
@@ -109,15 +109,24 @@ public class CombinatorialTest
 
 	/*This is where I generate the decision tree */
 	public static void generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
-		// This is the first pass through the tree
+		// This is the first pass through the tree, where I remove mandatory assignments from consideration
+		ArrayList<Item> mandatoryAss = new ArrayList<Item>();
+		for (int i=0;i<locations.size();i++) {
+			if(locations.get(i).getMandatoryAssignments().size() > 0) {
+				mandatoryAss.addAll(locations.get(i).getMandatoryAssignments());
+			}
+		}
+		// This is the second pass through the tree, assigning normally
     	for (int i=0; i<locations.size(); i++) {    		
     		decision decision_choice = new decision(locations.get(i)); 		
     		ArrayList<Item> itemClone = new ArrayList<Item>(items);
+    		itemClone.removeAll(mandatoryAss);
+    		items.removeAll(mandatoryAss);
     		decision_choice.setUnconstrainedChoices(itemClone);		
     		decision_choice.setDecisionSelection(items);		  		
     		decisionNumber.add(decision_choice); 		
     	}
-    	// Iterate through the tree, removing assigned items from all constrained choice lists
+    	// This is the third pass thru the tree. Iterate through the tree, removing assigned items from all constrained choice lists
     	StringBuffer NA = new StringBuffer("null");
     	for(decision choice: decisionNumber) {
     		if(!choice.getDecisionSelected().contentEquals(NA)) {
@@ -126,8 +135,10 @@ public class CombinatorialTest
     			}
     		}
     	}
+    	
     	// Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.
-    	/*for(decision secondPass: decisionNumber) {
+    	
+    	/*for(decision secondPass: decisionNumber) { // old loop
     		if(secondPass.getDecisionSelected().contentEquals(NA)) {
     			Item item = secondPass.getConstrainedChoices().get(0);
     			secondPass.setItemAssigned(item);
@@ -138,9 +149,14 @@ public class CombinatorialTest
     			}
     		}
     	}*/
-    	for(int i=0;i<decisionNumber.size();i++) {
+    	for(int i=0;i<decisionNumber.size();i++) { // new loop
        		if(decisionNumber.get(i).getDecisionSelected().contentEquals(NA)) {
-    			Item item = decisionNumber.get(i).getConstrainedChoices().get(0);
+       			Item item;
+       			if(decisionNumber.get(i).getConstrainedChoices().size() > 0) {
+       				item = decisionNumber.get(i).getConstrainedChoices().get(0);
+       			}
+       			else
+       				item = new Item("No item assigned");
     			decisionNumber.get(i).setItemAssigned(item);
     			decisionNumber.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
     			// Now remove that item from the choice lists that follow
@@ -153,11 +169,12 @@ public class CombinatorialTest
     	// Finally, go back and add the decided items back to their constrained lists if it's not already in them
     	for(decision finalPass: decisionNumber) {
     		if(!finalPass.getConstrainedChoices().contains(finalPass.getItemAssigned())) {
-    			finalPass.getConstrainedChoices().add(finalPass.getItemAssigned());
+    			finalPass.getConstrainedChoices().add(0,finalPass.getItemAssigned());
     		}
     		if(!finalPass.getUnconstrainedChoices().contains(finalPass.getItemAssigned())) {
     			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
-    			Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator);
+    			if(finalPass.getUnconstrainedChoices().size() > 2)
+    				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator);
     		}
     	}
 	}
@@ -199,7 +216,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 		//			if it's not in the original unconstrained list, it's a brand new item.
 		//			then just update the assigned item at the location 
 			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
-			    	System.out.println("^^^^^^you are at line 186. Unconstrained choices doesn't contain new item.");
+			    	System.out.println("^^^^^^you are at line 202. Unconstrained choices doesn't contain new item.");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
 			    	// maybe give the user the option to regenerate the list from here? 
@@ -207,7 +224,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 			    }
 		//		I must check and see if that item was assigned earlier (if new item is not in location's constrained list, it was)
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
-			    	System.out.println("^^^^^^you are at line 194. Constrained choices contains new item. Assigned earlier chech = true");
+			    	System.out.println("^^^^^^you are at line 210. Constrained choices contains new item. Assigned earlier chech = true");
 		//			if it wasn't assigned earlier, then I change this decision
 					// insert original item back into unconstrained list of choices (turns out this isn't necessary)
 		//				I assign the new item to this location
@@ -223,19 +240,20 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 				}
 				else {
 		//			if it was assigned earlier, then I change that earlier decision and make this later decision/location item assignment a hard constraint
-					System.out.println("^^^^^^^you are at line 210. Making hard constraint at location.");
+					System.out.println("^^^^^^^you are at line 226. Making hard constraint at location.");
 					ArrayList<Item> manAss = new ArrayList<Item>();
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().setMandatoryAssignments(manAss);
 					Integer earliestLocationIndex = findEarliestAssignment(decisionNumber, newItem);
 		//				I assign the new item to this location and add the old assignment back to the unconstrained choices list
 					oldItem = decisionNumber.get(earliestLocationIndex).getItemAssigned();
-					decisionNumber.get(earliestLocationIndex).setItemAssigned(newItem);
+					decisionNumber.get(earliestLocationIndex).setDecisionSelection(decisionNumber.get(earliestLocationIndex).getConstrainedChoices());
+					//decisionNumber.get(earliestLocationIndex).setItemAssigned(newItem);
 					decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().add(oldItem);
 					decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().remove(newItem);				
 		//					then I rebuild my list starting from that earlier location
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices());
-					locationIndex++;
+					//locationIndex++;
 					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(earliestLocationIndex, locationList.size()));
 					decisionNumber.subList(earliestLocationIndex, decisionNumber.size()).clear();			
 					generateDecisionTree(newLocationList,newItemList);

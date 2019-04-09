@@ -28,8 +28,14 @@ public class decision {
 		// old way: then pick the first item in the constrained list and assign it to this location.
 		//			this is now done after first pass through.
 		// NEW WAY: Pick item with the most occurrences in the constrained list
+		Item item;
 		try {
-			Item item = getBestFit();
+			if(location.getMandatoryAssignments().size() > 0) {
+				item = location.getMandatoryAssignments().get(0);/*top manAss*/
+			}
+			else {
+				item = getBestFit();
+			}
 			setItemAssigned(item);
 			
 			// Remove item selected from unconstrained list

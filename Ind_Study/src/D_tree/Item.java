@@ -40,9 +40,9 @@ public class Item implements Comparable{
 	
 	public static Comparator<Item> PropComparator = new Comparator<Item>(){
 		public int compare(Item item1, Item item2) {
-			Integer item1Length = item1.getItemProperties().length;
-			Integer item2Length = item2.getItemProperties().length;
-			return item2Length.compareTo(item1Length);
+				Integer item1Length = item1.getItemProperties().length;
+				Integer item2Length = item2.getItemProperties().length;
+				return item2Length.compareTo(item1Length);
 		}
 	};
 }
