@@ -31,22 +31,33 @@ public class CombinatorialTest
     	for(String fileNames : file.list()) System.out.println(fileNames);
     	*/
     	
-    	items = readItemFile("items.txt");
+    	items = readItemFile("itemsSimple.txt");
     	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
+    	String[] line;
     	for (Item item : items) {
-    		System.out.print("Item Name: "+ item.getItemProperties()[0]);
-    		for (int i=1;i<item.getItemProperties().length;i++) {
-    			System.out.print(" "+item.getItemProperties()[i]);
+    		System.out.print("Item Name: "+ /*item.getItemName() )*/item.getItemProperties().get(0)+", Constraints:->");
+    		for (int i=1;i<item.getItemProperties().size();i++) {
+    			if(item.getItemProperties().get(i) != null) {
+					if(item.getItemProperties().get(i).indexOf("&") >= 0) { // separate AND conditions during print. Practice for upcoming check.
+	    				line = item.getItemProperties().get(i).split("&");
+	    				System.out.print(" "+line[0]);
+						for(int j=1;j<line.length;j++)
+							System.out.print("&"+line[j]);
+					}
+	    			else
+	    				System.out.print(" "+item.getItemProperties().get(i));
+    			}
     		}
+    		System.out.print("<-|| Number of Constraints:"+item.getNumberOfConstraints());
     		System.out.println();
     	}
     	System.out.println();
     	
-    	locations = readLocationFile("locations.txt");
+    	locations = readLocationFile("locationsSimple.txt");
     	for (Location location: locations) {
-    		System.out.print("Location name: "+ location.getLocationCriteria()[0]);
-    		for (int i=1; i<location.getLocationCriteria().length;i++) {
-    			System.out.print(" "+ location.getLocationCriteria()[i]);
+    		System.out.print("Location name: "+ location.getLocationCriteria().get(0));
+    		for (int i=1; i<location.getLocationCriteria().size();i++) {
+    			System.out.print(" "+ location.getLocationCriteria().get(i));
     		}
     		System.out.println();
     	}
@@ -149,16 +160,22 @@ public class CombinatorialTest
     			}
     		}
     	}*/
+    	StringBuffer noItem = new StringBuffer("No item assigned");
     	for(int i=0;i<decisionNumber.size();i++) { // new loop
        		if(decisionNumber.get(i).getDecisionSelected().contentEquals(NA)) {
        			Item item;
        			if(decisionNumber.get(i).getConstrainedChoices().size() > 0) {
        				item = decisionNumber.get(i).getConstrainedChoices().get(0);
        			}
-       			else
+       			else {
        				item = new Item("No item assigned");
+       			}
     			decisionNumber.get(i).setItemAssigned(item);
     			decisionNumber.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
+    			if(item.getItemName().contentEquals(noItem)) {
+    				decisionNumber.get(i).getUnconstrainedChoices().removeAll(Collections.singleton(item));
+    				decisionNumber.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
+    			}
     			// Now remove that item from the choice lists that follow
     			for(int j=i+1;j<decisionNumber.size();j++) {
     				decisionNumber.get(j).getConstrainedChoices().removeAll(Collections.singleton(item));
@@ -193,11 +210,11 @@ public class CombinatorialTest
 		// Second, I check to make sure the new item's preferences fits the location's criteria.
 		//		if so, continue
         //		if not tell user they can't assign that item to that location.
-				for(int j=0; j<newItem.getItemProperties().length; j++) {
-					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().length; k++) {
+				for(int j=0; j<newItem.getItemProperties().size(); j++) {
+					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().size(); k++) {
 /*need to update this part bc of more properties and criteria */
 System.out.println("This section at line 166 needs to be updated!!! It only checks to see if it fits at least one criteria");
-						if(newItem.getItemProperties()[j].equals(decisionNumber.get(i).getLocation().getLocationCriteria()[k]) || newItem.getItemProperties()[j].equals("[NA]")) {
+						if(newItem.getItemProperties().get(j).equals(decisionNumber.get(i).getLocation().getLocationCriteria().get(k)) || newItem.getItemProperties().get(j).equals("[NA]")) {
 							meetsCriteria = true;
 							locationIndex = i;
 						}
@@ -288,7 +305,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
         
         int counter = 0;
         while (textReader.ready()) {
-        	String[] line = textReader.readLine().split(" "); // for each line read, add 1 to counter.
+        	String[] line = textReader.readLine().split(","); // for each line read, add 1 to counter.
             Item item = new Item(line[0]);
             item.setItemProperties(line);
             itemsFromFile.add(item);
@@ -300,14 +317,18 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
         
         /* Sort items from most to least constrained according to length of their properties (aka requirements) */
         StringBuffer NA = new StringBuffer("[NA]");
-        for(Item item: itemsFromFile) {
-        	if(item.getItemProperties()[1].contentEquals(NA)) {
-        		itemsWithNA.add(item);
-        	}
-        }
+        if(!itemsFromFile.isEmpty()) {
+	        for(Item item: itemsFromFile) {
+	        	if(!item.getItemProperties().isEmpty()/*.get(1) != null*/){
+		        	if(item.getItemProperties().get(1).contentEquals(NA)) {
+		        		itemsWithNA.add(item);
+		        	}
+	        	}
+	        }
         itemsFromFile.removeAll(itemsWithNA);
         Collections.sort(itemsFromFile, Item.PropComparator);
         itemsFromFile.addAll(itemsWithNA);
+        }
         return itemsFromFile;
     }
     
@@ -315,11 +336,12 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 		FileReader fr = new FileReader(filename);
         BufferedReader textReader = new BufferedReader(fr);
         ArrayList<Location> locationsFromFile = new ArrayList<Location>();
+        ArrayList<Location> locationsWithNA = new ArrayList<Location>();
         
         
         int counter = 0;
         while (textReader.ready()) {
-        	String[] line = textReader.readLine().split(" "); // for each line read, add 1 to counter.
+        	String[] line = textReader.readLine().split(","); // for each line read, add 1 to counter.
             Location location = new Location(line[0]); // this is a simple location list, with no constraints
             location.setLocationCriteria(line);
             locationsFromFile.add(location);
@@ -330,7 +352,20 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
                 throw new Exception("Error. "+filename+" is empty."); // if no lines read, throw empty file exception
         
         /* Sort locations from most to least constrained according to length of their criteria (aka requirements) */
+        /* Sort items from most to least constrained according to length of their properties (aka requirements) */
+        StringBuffer NA = new StringBuffer("[NA]");
+        if(!locationsFromFile.isEmpty()) {
+	        for(Location location: locationsFromFile) {
+	        	if(!location.getLocationCriteria().isEmpty()/*.get(1) != null*/){
+		        	if(location.getLocationCriteria().get(1).contentEquals(NA)) {
+		        		locationsWithNA.add(location);
+		        	}
+	        	}
+	        }
+	    locationsFromFile.removeAll(locationsWithNA);
         Collections.sort(locationsFromFile, Location.critComparator);
+        locationsFromFile.addAll(locationsWithNA);
+        }
         return locationsFromFile;
     }
 } 

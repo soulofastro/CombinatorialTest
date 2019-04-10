@@ -138,13 +138,14 @@ public class decision {
 		}
 		
 		for (int i=0; i < conChoice.size(); i++ ) {
-			for(int j=0; j < conChoice.get(i).getItemProperties().length; j++) {
-				for(int k=0; k < this.location.getLocationCriteria().length; k++) {
-					/* if this item element contains a ',' then break it up and compare the pieces to the criteria*/
-					if(conChoice.get(i).getItemProperties()[j].equals(this.location.getLocationCriteria()[k])) {
+			for(int j=0; j < conChoice.get(i).getItemProperties().size(); j++) {
+				for(int k=0; k < this.location.getLocationCriteria().size(); k++) {
+					/* if this item element contains a '&' then break it up and compare the pieces to the criteria*/
+					/* count the number of AND "&" matches and add item to list for each one */
+					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k))) {
 						newList.add(conChoice.get(i));
 					}
-					else if(conChoice.get(i).getItemProperties()[j].equals("[NA]")) {
+					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]")) {
 						if(!newList.contains(conChoice.get(i)))
 							newList.add(conChoice.get(i));
 					}
