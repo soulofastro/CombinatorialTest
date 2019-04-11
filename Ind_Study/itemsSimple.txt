@@ -1,5 +1,5 @@
 Alpha,[C2|C3]&[C4|C5]&[C6|C7]
-Beta,[C1|C2|C3|C5|C6|C7]
+Beta,[C1|C2|C4|C5|C6|C7]
 Charlie,[C2]&[C3|C4],[C1]
 Delta,[C2|C3]&[C4]
 Echo,[C2|C3|C6]&[C4|C5|C7],[C1]

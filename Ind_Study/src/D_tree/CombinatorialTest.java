@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 /*
  *  An item is equivalent to a Professor, class, or any object that can be placed into something.
  *  A location is equivalent to a class, time slot, or any thing that an object can be placed into.
@@ -19,6 +21,7 @@ public class CombinatorialTest
 { 
 	
 	public static ArrayList<decision> decisionNumber = new ArrayList<decision>();	
+	public static ArrayList<Item> itemsDuplicate = new ArrayList<Item>();
 	
 	public static void main(String args[]) throws FileNotFoundException, IOException, Exception { 
 		
@@ -33,32 +36,23 @@ public class CombinatorialTest
     	
     	items = readItemFile("itemsSimple.txt");
     	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
-    	String[] line;
     	for (Item item : items) {
-    		System.out.print("Item Name: "+ /*item.getItemName() )*/item.getItemProperties().get(0)+", Constraints:->");
+    		System.out.print("Item Name: "+ item.getItemProperties().get(0)+", Constraints:->");
     		for (int i=1;i<item.getItemProperties().size();i++) {
-    			if(item.getItemProperties().get(i) != null) {
-					if(item.getItemProperties().get(i).indexOf("&") >= 0) { // separate AND conditions during print. Practice for upcoming check.
-	    				line = item.getItemProperties().get(i).split("&");
-	    				System.out.print(" "+line[0]);
-						for(int j=1;j<line.length;j++)
-							System.out.print("&"+line[j]);
-					}
-	    			else
-	    				System.out.print(" "+item.getItemProperties().get(i));
-    			}
+    			System.out.print(" "+item.getItemProperties().get(i));
     		}
-    		System.out.print("<-|| Number of Constraints:"+item.getNumberOfConstraints());
+    		System.out.print(" <-|| Number of Constraints: "+item.getNumberOfConstraints());
     		System.out.println();
     	}
     	System.out.println();
     	
     	locations = readLocationFile("locationsSimple.txt");
     	for (Location location: locations) {
-    		System.out.print("Location name: "+ location.getLocationCriteria().get(0));
+    		System.out.print("Location name: "+ location.getLocationCriteria().get(0)+",Constraints:->");
     		for (int i=1; i<location.getLocationCriteria().size();i++) {
     			System.out.print(" "+ location.getLocationCriteria().get(i));
     		}
+    		System.out.print(" <-|| Number of Constraints: "+location.getNumberOfConstraints());
     		System.out.println();
     	}
     	System.out.println();
@@ -147,20 +141,9 @@ public class CombinatorialTest
     		}
     	}
     	
-    	// Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.
-    	
-    	/*for(decision secondPass: decisionNumber) { // old loop
-    		if(secondPass.getDecisionSelected().contentEquals(NA)) {
-    			Item item = secondPass.getConstrainedChoices().get(0);
-    			secondPass.setItemAssigned(item);
-    			// Now remove that item from the constrained choice lists
-    			for(decision eachDecision: decisionNumber) {
-    				eachDecision.getConstrainedChoices().remove(item);
-    				//eachDecision.getUnconstrainedChoices().remove(item);
-    			}
-    		}
-    	}*/
     	StringBuffer noItem = new StringBuffer("No item assigned");
+    	
+    	/* Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.*/
     	for(int i=0;i<decisionNumber.size();i++) { // new loop
        		if(decisionNumber.get(i).getDecisionSelected().contentEquals(NA)) {
        			Item item;
@@ -183,15 +166,41 @@ public class CombinatorialTest
     			}
     		}
     	}
-    	// Finally, go back and add the decided items back to their constrained lists if it's not already in them
-    	for(decision finalPass: decisionNumber) {
-    		if(!finalPass.getConstrainedChoices().contains(finalPass.getItemAssigned())) {
-    			finalPass.getConstrainedChoices().add(0,finalPass.getItemAssigned());
+    	// Next, go back and add the decided items back to their constrained lists if it's not already in them
+    	for(decision nextPass: decisionNumber) {
+    		if(!nextPass.getConstrainedChoices().contains(nextPass.getItemAssigned())) {
+    			nextPass.getConstrainedChoices().add(0,nextPass.getItemAssigned());
     		}
-    		if(!finalPass.getUnconstrainedChoices().contains(finalPass.getItemAssigned())) {
-    			finalPass.getUnconstrainedChoices().add(finalPass.getItemAssigned());
+    		if(!nextPass.getUnconstrainedChoices().contains(nextPass.getItemAssigned())) {
+    			nextPass.getUnconstrainedChoices().add(nextPass.getItemAssigned());
     			/*if(finalPass.getConstrainedChoices().size() == 1)
     				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator); */
+    		}
+    	}
+    	// Finally, go back and check for locations with "No item assigned" and check to see if one item in the original list fit
+    	
+    	for(decision finalPass: decisionNumber) {
+    		//System.out.println("xxxx loc: "+finalPass.getLocation().getLocationName());
+    		if(finalPass.getDecisionSelected().contentEquals(noItem)) {
+    			//look in original location list to see if anything fits. If only one item can be assigned here, assign it and rebuild the list.
+    			itemsDuplicate = new ArrayList<Item>(items);
+    			finalPass.setConstrainedChoices(itemsDuplicate);
+    			
+    			if(finalPass.getConstrainedChoices().size() > 0) {
+    				LinkedHashSet<Item>	set = new LinkedHashSet<Item>(finalPass.getConstrainedChoices());
+    				ArrayList<Item> newList = new ArrayList<Item>();
+    				newList.addAll(set);
+    				
+	    			if(set.size()==1) {
+	    				Item singlet = finalPass.getConstrainedChoices().get(0);
+	    				finalPass.getConstrainedChoices().clear();
+	    				changeDecisionSelection(finalPass.getLocation(), singlet, locations);
+	    			}    			
+	    			else {
+	    				for(Item iter: newList) { System.out.print(iter.getItemName()+", ");}
+	    				System.out.println("could not be assigned to Location "+finalPass.getLocation().getLocationName()+" because they were assigned at another location.\n");
+	    			}
+    			}
     		}
     	}
 	}
@@ -212,8 +221,6 @@ public class CombinatorialTest
         //		if not tell user they can't assign that item to that location.
 				for(int j=0; j<newItem.getItemProperties().size(); j++) {
 					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().size(); k++) {
-/*need to update this part bc of more properties and criteria */
-System.out.println("This section at line 166 needs to be updated!!! It only checks to see if it fits at least one criteria");
 						if(newItem.getItemProperties().get(j).equals(decisionNumber.get(i).getLocation().getLocationCriteria().get(k)) || newItem.getItemProperties().get(j).equals("[NA]")) {
 							meetsCriteria = true;
 							locationIndex = i;
@@ -233,7 +240,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 		//			if it's not in the original unconstrained list, it's a brand new item.
 		//			then just update the assigned item at the location 
 			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
-			    	System.out.println("^^^^^^you are at line 202. Unconstrained choices doesn't contain new item.");
+			    	System.out.println("^^^^^^you are at line 238. Unconstrained choices doesn't contain new item.\n");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	decisionNumber.get(locationIndex).setItemAssigned(newItem);
 			    	// maybe give the user the option to regenerate the list from here? 
@@ -241,7 +248,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 			    }
 		//		I must check and see if that item was assigned earlier (if new item is not in location's constrained list, it was)
 			    else if (decisionNumber.get(locationIndex).getConstrainedChoices().contains(newItem)) {
-			    	System.out.println("^^^^^^you are at line 210. Constrained choices contains new item. Assigned earlier chech = true");
+			    	System.out.println("^^^^^^you are at line 246. Constrained choices contains newItem. It was not assigned earlier.\n");
 		//			if it wasn't assigned earlier, then I change this decision
 					// insert original item back into unconstrained list of choices (turns out this isn't necessary)
 		//				I assign the new item to this location
@@ -257,7 +264,7 @@ System.out.println("This section at line 166 needs to be updated!!! It only chec
 				}
 				else {
 		//			if it was assigned earlier, then I change that earlier decision and make this later decision/location item assignment a hard constraint
-					System.out.println("^^^^^^^you are at line 226. Making hard constraint at location.");
+					System.out.println("^^^^^^^you are at line 262. Making hard constraint at location.\n");
 					ArrayList<Item> manAss = new ArrayList<Item>();
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().setMandatoryAssignments(manAss);

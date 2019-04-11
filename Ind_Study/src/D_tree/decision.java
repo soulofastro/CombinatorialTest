@@ -73,6 +73,10 @@ public class decision {
 				frequency = entry.getValue();
 			}
 		}
+		/*
+		if(constrainedChoices.size() == 1) {
+			element = constrainedChoices.get(0);
+		}*/
 		/******
         if(frequency > 1)
         {
@@ -137,12 +141,13 @@ public class decision {
 			newList.addAll(manAss);
 		}
 		
+		// TODO update this section so it can check combinations. E.g. A&B vs B&A
 		for (int i=0; i < conChoice.size(); i++ ) {
 			for(int j=0; j < conChoice.get(i).getItemProperties().size(); j++) {
+				//System.out.println("Checking to see if "+conChoice.get(i).getItemName()+" matches anything in " +this.location.getLocationName());
 				for(int k=0; k < this.location.getLocationCriteria().size(); k++) {
-					/* if this item element contains a '&' then break it up and compare the pieces to the criteria*/
-					/* count the number of AND "&" matches and add item to list for each one */
 					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k))) {
+						//System.out.println("item-> "+conChoice.get(i).getItemName()+", conChoice-> "+conChoice.get(i).getItemProperties().get(j)+"--"+this.location.getLocationCriteria().get(k)+" <-LocCriteria, "+this.location.getLocationName()+" <-Location");
 						newList.add(conChoice.get(i));
 					}
 					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]")) {
