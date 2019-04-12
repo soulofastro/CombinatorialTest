@@ -122,8 +122,13 @@ public class Item implements Comparable{
 						int lastOpenBracket = property.lastIndexOf('[')+1;
 						lastOpenBrak = property.substring(0, lastOpenBracket);
 						//System.out.println("lastOpenBrak: "+lastOpenBrak);
+						StringBuilder sb = new StringBuilder();
+						for(int k=index+1;k<propLine.length;k++) {
+							sb.append(propLine[k]);
+						}
+						String restOfString = sb.toString();
 						property = lastOpenBrak;
-						property = property + propLine[index+1] +propLine[index+2]+ ']';
+						property = property + restOfString;
 						//System.out.println("you made it to line 123. I just added: "+property);
 						expanded.add(property);
 						finished = true;
@@ -143,7 +148,7 @@ public class Item implements Comparable{
 		return expanded;
 	}
 	
-	boolean containsChar(char c, char[] array) {
+	public boolean containsChar(char c, char[] array) {
 	    for (char x : array) {
 	        if (x == c) {
 	            return true;
@@ -152,7 +157,7 @@ public class Item implements Comparable{
 	    return false;
 	}
 	
-	int numberOfCharAppearances(char c, char[] array) {
+	public int numberOfCharAppearances(char c, char[] array) {
 		int count = 0;
 	    for (char x : array) {
 	        if (x == c) {

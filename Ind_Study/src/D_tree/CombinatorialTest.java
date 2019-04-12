@@ -57,6 +57,9 @@ public class CombinatorialTest
     	}
     	System.out.println();
     	
+    	/* constraints check */
+    	ConstraintsCheck.generateCheck(items,locations);
+    	
     	/* Look at each location and assign an item to it */
     	/* This generates a decision node that we can later revisit */
     	/* The actual decision choice is made inside the decision class when the node is generated */
@@ -171,7 +174,7 @@ public class CombinatorialTest
     		if(!nextPass.getConstrainedChoices().contains(nextPass.getItemAssigned())) {
     			nextPass.getConstrainedChoices().add(0,nextPass.getItemAssigned());
     		}
-    		if(!nextPass.getUnconstrainedChoices().contains(nextPass.getItemAssigned())) {
+    		if(!nextPass.getUnconstrainedChoices().contains(nextPass.getItemAssigned()) && !nextPass.getItemAssigned().getItemName().contentEquals(noItem)) {
     			nextPass.getUnconstrainedChoices().add(nextPass.getItemAssigned());
     			/*if(finalPass.getConstrainedChoices().size() == 1)
     				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator); */
@@ -203,8 +206,47 @@ public class CombinatorialTest
     			}
     		}
     	}
+    generateMediumConfidenceDecisionTree();
+    generateLowConfidenceDecisionTree();
 	}
-	
+
+	/* Go through decisions and try to assign items that only partially fit to locations */
+	private static void generateMediumConfidenceDecisionTree() {
+		Item item = decisionNumber.get(decisionNumber.size()-1).getItemAssigned();
+		ArrayList<Item> Unassigned = new ArrayList<Item>(decisionNumber.get(decisionNumber.size()-1).getUnconstrainedChoices());
+		Unassigned.removeAll(Collections.singleton(item));
+		StringBuffer noItem = new StringBuffer("No item assigned");
+		
+		for(int i=0;i<decisionNumber.size();i++) {
+			if(decisionNumber.get(i).getItemAssigned().getItemName().contentEquals(noItem)) {
+				ArrayList<String> locationCrit = new ArrayList<String>(decisionNumber.get(i).getLocation().getLocationCriteria());
+				decisionNumber.get(i).getMediumConfidenceFit(Unassigned, locationCrit);
+				Item medItem = decisionNumber.get(i).getItemAssigned();
+				for(int j=i+1; j<decisionNumber.size();j++) {
+					decisionNumber.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(medItem));
+				}
+			}
+		}		
+	}
+	/* go through decisions and assign items that are leftover to open locations without checking criteria */
+	private static void generateLowConfidenceDecisionTree() {
+		Item item = decisionNumber.get(decisionNumber.size()-1).getItemAssigned();
+		ArrayList<Item> Unassigned = new ArrayList<Item>(decisionNumber.get(decisionNumber.size()-1).getUnconstrainedChoices());
+		Unassigned.removeAll(Collections.singleton(item));
+		StringBuffer noItem = new StringBuffer("No item assigned");
+		
+		for(int i=0;i<decisionNumber.size();i++) {
+			if(decisionNumber.get(i).getItemAssigned().getItemName().contentEquals(noItem)) {
+				decisionNumber.get(i).getLowConfidenceFit(Unassigned);
+				Item medItem = decisionNumber.get(i).getItemAssigned();
+				Unassigned.remove(medItem);
+				for(int j=i+1; j<decisionNumber.size();j++) {
+					decisionNumber.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(medItem));
+				}
+			}
+		}
+	}
+
 	/* THIS IS WHERE I CHANGE A DECISION AT A LOCATION */
 	/* change item assigned to this location to newItem */
 	/* arguments are ("where you want to put the new item", "the new item you want to insert", "complete location list")*/

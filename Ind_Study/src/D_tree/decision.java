@@ -61,14 +61,14 @@ public class decision {
 		}
 		Item element = new Item();
 		int frequency = 1;
-		int oldFrequency = 1;
+		//int oldFrequency = 1;
 		
 		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
 		
 		//StringBuffer NA = new StringBuffer("[NA]");
 		for (Entry<Item, Integer> entry: entrySet) {
 			if(entry.getValue() > frequency /*&& frequency > oldFrequency*/) {
-				oldFrequency = frequency;
+				//oldFrequency = frequency;
 				element = entry.getKey();
 				frequency = entry.getValue();
 			}
@@ -141,13 +141,16 @@ public class decision {
 			newList.addAll(manAss);
 		}
 		
-		// TODO update this section so it can check combinations. E.g. A&B vs B&A
+		
 		for (int i=0; i < conChoice.size(); i++ ) {
 			for(int j=0; j < conChoice.get(i).getItemProperties().size(); j++) {
 				//System.out.println("Checking to see if "+conChoice.get(i).getItemName()+" matches anything in " +this.location.getLocationName());
 				for(int k=0; k < this.location.getLocationCriteria().size(); k++) {
 					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k))) {
 						//System.out.println("item-> "+conChoice.get(i).getItemName()+", conChoice-> "+conChoice.get(i).getItemProperties().get(j)+"--"+this.location.getLocationCriteria().get(k)+" <-LocCriteria, "+this.location.getLocationName()+" <-Location");
+						newList.add(conChoice.get(i));
+					}
+					else if(arrayCompare(conChoice.get(i).getItemProperties().get(j),this.location.getLocationCriteria().get(k))){
 						newList.add(conChoice.get(i));
 					}
 					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]")) {
@@ -163,6 +166,68 @@ public class decision {
 		//newList.clear();
 		//newList.addAll(set);
 		this.constrainedChoices = newList;
+	}
+	
+	private boolean arrayCompare(String propString, String critString) {
+		String[] prop = propString.split("&");
+		String[] crit = critString.split("&");
+		int matches = 0;
+		if(prop.length==crit.length) {
+			for(int i=0; i<prop.length; i++) {
+				for(int j=0; j<crit.length;j++) {
+					if(prop[i].equalsIgnoreCase(crit[j])) {
+						matches = matches + 1;
+					}
+				}
+			}
+		}
+		if(matches == prop.length)
+			return true;
+		else
+			return false;
+	}
+
+	public void getMediumConfidenceFit(ArrayList<Item> Unassigned, ArrayList<String> locationCriteria) {
+		
+		for(Item item: Unassigned) {
+			//System.out.println("ITEM: "+item.getItemName());
+			ArrayList<String> itemProperties= new ArrayList<String>(item.getItemProperties());
+			for(String propString: itemProperties) {
+				String[] separatedProps = propString.split("&");
+				for(String critString: locationCriteria) {
+					String[] separatedCrits = critString.split("&");
+					for(String props: separatedProps) {
+						for(String crits: separatedCrits) {
+							//System.out.println(props+"=="+crits+" ?");
+							if(props.contentEquals(crits)) {
+								this.constrainedChoices.add(item);
+							}
+						}
+					}
+				}
+			}
+		}
+		if(this.constrainedChoices.size()>1 && getBestFit()!=null) {
+			Item newItem = getBestFit();
+			//System.out.println("line190 setItem to newItem "+ newItem.getItemName()+"\n");
+			setItemAssigned(newItem);
+			//unconstrainedChoices.remove(newItem);
+		}
+		else if(this.constrainedChoices.size()>0) {
+			setItemAssigned(this.constrainedChoices.get(0));
+			//unconstrainedChoices.remove(constrainedChoices.get(0));
+		}
+		else {
+			Item noItem = new Item("No item assigned");
+			setItemAssigned(noItem);
+		}
+		this.constrainedChoices.clear();
+	}
+	
+	public void getLowConfidenceFit(ArrayList<Item> unassigned) {
+		if(unassigned.size()>0) {
+			setItemAssigned(unassigned.get(0));	
+		}
 	}
 	
 	/* Methods to print constrained and unconstrained lists */
@@ -184,6 +249,4 @@ public class decision {
     		i++;
     	}
 	}
-	
-
 }
