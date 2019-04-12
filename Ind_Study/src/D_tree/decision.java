@@ -238,7 +238,6 @@ public class decision {
     		System.out.println("Constrained Item "+ i.toString() +" Name: "+ constrainedChoices.get(j).getItemName());
     		i++;
     	}
-		
 	}
 	
 	public void printUnconstrainedChoices() {
