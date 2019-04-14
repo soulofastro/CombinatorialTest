@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Constraint {
 	
-	private String constraintName = "null";
+	private String constraintName = "unknown";
 	private ArrayList<String> itemsWithProperty;
 	private ArrayList<String> locationsWithConstraint;
 	private Integer difference = 0;

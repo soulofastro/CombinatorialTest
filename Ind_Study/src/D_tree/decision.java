@@ -1,6 +1,7 @@
 package D_tree;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -171,6 +172,9 @@ public class decision {
 	private boolean arrayCompare(String propString, String critString) {
 		String[] prop = propString.split("&");
 		String[] crit = critString.split("&");
+		prop = Arrays.stream(prop).distinct().toArray(String[]::new);
+		crit = Arrays.stream(crit).distinct().toArray(String[]::new);
+		
 		int matches = 0;
 		if(prop.length==crit.length) {
 			for(int i=0; i<prop.length; i++) {

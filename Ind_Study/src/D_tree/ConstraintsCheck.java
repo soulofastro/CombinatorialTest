@@ -38,9 +38,9 @@ public class ConstraintsCheck {
 			}
 		}
 		*/
-		// Final array. Each array element has the following array:
-		//    [Property or criteria] 	[item names with property] [location name with matching criteria] [Criteria minus Property number]
-		// -->[single element(String)]  [String Array of names]    [String array of names]				  [single element (Integer)]
+		// Final array. Each array element has the following object properties:
+		//    [Property or criteria] 	[item names with property] [location names with matching criteria] [Criteria minus Property number]
+		// -->[Constraint object]       [String Array of names]    [String array of names]				   [single element (Integer)]
 		// Then print all elements with a negative number and display items and notify user that all of these items might not be assigned to desired locations.
 		// Either reduce the number of elements with this property or increase the number of locations with matching criteria.
 	}

@@ -1,5 +1,5 @@
 package D_tree;
 
-public class ConvertLocationToItem {
+public class ConvertLocationToItem extends Item {
 
 }
