@@ -2,6 +2,7 @@ package D_tree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,17 +34,76 @@ public class decision {
 		try {
 			if(location.getMandatoryAssignments().size() > 0) {
 				item = location.getMandatoryAssignments().get(0);/*top manAss*/
+				AssignmentTracker.decreaseCounts(item); 
+				//decrease item count here because I increased it artificially earlier
+				//this counteracts the next count increase below
 			}
 			else {
 				item = getBestFit();
 			}
 			setItemAssigned(item);
 			
+			//this updates how many times an item is assigned
+			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
+			/*if(!item.getItemName().equals("null")){
+				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
+				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
+				count += 1;
+				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
+			}*/
+			AssignmentTracker.increaseCounts(item);
+			
 			// Remove item selected from unconstrained list
-			unconChoices.remove(item);
+			if(AssignmentTracker.atLimit(item)) {
+				unconChoices.remove(item);
+			}
 		}
 		catch(Exception e){
-			Item noItem = new Item("No Item Assigned to location.");
+			Item noItem = new Item("No item assigned");
+			setItemAssigned(noItem);
+			//System.out.println("Assignment error.");
+		}
+		
+	}
+	public void setDecisionSelection(ArrayList<Item> unconChoices, Item oldItem) {
+		ArrayList<Item> unconClone = new ArrayList<Item>(unconChoices);
+		// given a location (which has a name and criteria) and list of item choices
+		// create a list of constrained choices from a list of unconstrained choices
+		setConstrainedChoices(unconClone);
+		
+		// old way: then pick the first item in the constrained list and assign it to this location.
+		//			this is now done after first pass through.
+		// NEW WAY: Pick item with the most occurrences in the constrained list
+		Item item;
+		try {
+			if(location.getMandatoryAssignments().size() > 0) {
+				item = location.getMandatoryAssignments().get(0);/*top manAss*/
+				AssignmentTracker.decreaseCounts(item); 
+				//decrease item count here because I increased it artificially earlier
+				//this counteracts the next count increase below
+			}
+			else {
+				item = getBestFit(oldItem);
+			}
+			setItemAssigned(item);
+			
+			//this updates how many times an item is assigned
+			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
+			/*if(!item.getItemName().equals("null")){
+				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
+				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
+				count += 1;
+				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
+			}*/
+			AssignmentTracker.increaseCounts(item);
+			
+			// Remove item selected from unconstrained list
+			if(AssignmentTracker.atLimit(item)) {
+				unconChoices.remove(item);
+			}
+		}
+		catch(Exception e){
+			Item noItem = new Item("No item assigned");
 			setItemAssigned(noItem);
 			//System.out.println("Assignment error.");
 		}
@@ -98,6 +158,58 @@ public class decision {
 		//System.out.println("ELEMENT: "+ element.getItemName());
 		return element;
 	}
+	
+	private Item getBestFit(Item oldItem) {
+		// I need to look at the constrained list and determine which item has appeared the most, then return that item
+		HashMap<Item,Integer> elementCountMap = new HashMap<Item,Integer>();
+		
+		constrainedChoices.removeAll(Collections.singleton(oldItem));
+		
+		for(Item i: constrainedChoices) {
+			if(elementCountMap.containsKey(i))
+				elementCountMap.put(i, elementCountMap.get(i)+1);
+			else
+				elementCountMap.put(i, 1);
+		}
+		Item element = constrainedChoices.get(0);
+		int frequency = 1;
+		//int oldFrequency = 1;
+		
+		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
+		
+		//StringBuffer NA = new StringBuffer("[NA]");
+		for (Entry<Item, Integer> entry: entrySet) {
+			if(entry.getValue() > frequency /*&& frequency > oldFrequency*/) {
+				//oldFrequency = frequency;
+				element = entry.getKey();
+				frequency = entry.getValue();
+			}
+		}
+		/*
+		if(constrainedChoices.size() == 1) {
+			element = constrainedChoices.get(0);
+		}*/
+		/******
+        if(frequency > 1)
+        {
+        	System.out.println("========================");
+            System.out.println("Input Array : "); printConstrainedChoices();
+            System.out.println("The most frequent element : "+element.getItemName());
+            System.out.println("Its frequency : "+frequency); 
+            System.out.println("========================");
+        }
+        else
+        {
+        	System.out.println("========================");
+            System.out.println("Input Array : "); printConstrainedChoices();
+            System.out.println("No frequent element. All elements are unique."); 
+            System.out.println("=========================");
+        }
+		******/
+		//System.out.println("ELEMENT: "+ element.getItemName());
+		constrainedChoices.add(oldItem);
+		return element;
+	}
 
 	public String getDecisionSelected() {
 		return itemAssigned.getItemName(); 
@@ -136,11 +248,53 @@ public class decision {
 		ArrayList<Item> newList = new ArrayList<Item>();
 		
 		// add mandatory choices to list first, then add other choices
-		// (update hashmap of mandatory assignments to be super large so it gets chosen first?)
 		if(this.location.getMandatoryAssignments().size() > 0) {
 			ArrayList<Item> manAss = new ArrayList<Item>(this.location.getMandatoryAssignments());
 			newList.addAll(manAss);
 		}
+		
+		
+		for (int i=0; i < conChoice.size(); i++ ) {
+			for(int j=0; j < conChoice.get(i).getItemProperties().size(); j++) {
+				//System.out.println("Checking to see if "+conChoice.get(i).getItemName()+" matches anything in " +this.location.getLocationName());
+				for(int k=0; k < this.location.getLocationCriteria().size(); k++) {
+					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k)) && AssignmentTracker.checkCount(conChoice.get(i))) {
+						//System.out.println("item-> "+conChoice.get(i).getItemName()+", conChoice-> "+conChoice.get(i).getItemProperties().get(j)+"--"+this.location.getLocationCriteria().get(k)+" <-LocCriteria, "+this.location.getLocationName()+" <-Location");
+						newList.add(conChoice.get(i));
+					}
+					else if(arrayCompare(conChoice.get(i).getItemProperties().get(j),this.location.getLocationCriteria().get(k)) && AssignmentTracker.checkCount(conChoice.get(i))){
+						newList.add(conChoice.get(i));
+					}
+					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]") && AssignmentTracker.checkCount(conChoice.get(i))) {
+						if(!newList.contains(conChoice.get(i)))
+							newList.add(conChoice.get(i));
+					}
+				}
+			}
+		}
+		// this is where I would build my sublist of allowed choices
+		// using location criteria and item properties
+		//LinkedHashSet<Item> set = new LinkedHashSet<Item>(newList);
+		//newList.clear();
+		//newList.addAll(set);
+		this.constrainedChoices = newList;
+	}
+	
+	// this overload ignores the count requirement
+	public void setConstrainedChoices(ArrayList<Item> itemsDuplicate, int doesntmatter) {
+		
+		ArrayList<Item> conChoice = new ArrayList<Item>(itemsDuplicate);
+		ArrayList<Item> newList = new ArrayList<Item>();
+		
+		// add mandatory choices to list first, then add other choices
+		if(this.location.getMandatoryAssignments().size() > 0) {
+			ArrayList<Item> manAss = new ArrayList<Item>(this.location.getMandatoryAssignments());
+			newList.addAll(manAss);
+		}
+		Item itemNA = new Item("No item assigned");
+		Item itemNull = new Item("null");
+		conChoice.remove(itemNA);
+		conChoice.remove(itemNull);
 		
 		
 		for (int i=0; i < conChoice.size(); i++ ) {
@@ -163,9 +317,6 @@ public class decision {
 		}
 		// this is where I would build my sublist of allowed choices
 		// using location criteria and item properties
-		//LinkedHashSet<Item> set = new LinkedHashSet<Item>(newList);
-		//newList.clear();
-		//newList.addAll(set);
 		this.constrainedChoices = newList;
 	}
 	
@@ -214,23 +365,39 @@ public class decision {
 		if(this.constrainedChoices.size()>1 && getBestFit()!=null) {
 			Item newItem = getBestFit();
 			//System.out.println("line190 setItem to newItem "+ newItem.getItemName()+"\n");
-			setItemAssigned(newItem);
+			if(AssignmentTracker.checkCount(newItem)) {
+				setItemAssigned(newItem);
+				AssignmentTracker.increaseCounts(newItem);
+			}
 			//unconstrainedChoices.remove(newItem);
 		}
 		else if(this.constrainedChoices.size()>0) {
-			setItemAssigned(this.constrainedChoices.get(0));
+			if(AssignmentTracker.checkCount(this.constrainedChoices.get(0))) {
+				setItemAssigned(this.constrainedChoices.get(0));
+				AssignmentTracker.increaseCounts(this.constrainedChoices.get(0));
+			}
 			//unconstrainedChoices.remove(constrainedChoices.get(0));
 		}
 		else {
 			Item noItem = new Item("No item assigned");
 			setItemAssigned(noItem);
 		}
+			
 		this.constrainedChoices.clear();
 	}
 	
 	public void getLowConfidenceFit(ArrayList<Item> unassigned) {
-		if(unassigned.size()>0) {
+		if(unassigned.size()>0 && AssignmentTracker.checkCount(unassigned.get(0))) {
 			setItemAssigned(unassigned.get(0));	
+		
+		//for(Item item: unassigned)
+			AssignmentTracker.increaseCounts(unassigned.get(0));
+			/*if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
+				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
+				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
+				count += 1;
+				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
+			}*/
 		}
 	}
 	

@@ -13,7 +13,6 @@ public class Location implements Comparable{
 										// "class requirements" and/or time slot requirements
 	private ArrayList<Item> mandatoryAssignments = new ArrayList<Item>();
 	private Integer numberOfConstraints = 0;
-
 	
 	/* constructors */
 	public Location() {
@@ -45,12 +44,12 @@ public class Location implements Comparable{
 		}
 		
 		/* End */
-		//String[] newArray = new String[tempProps.size()+itemProps.length];
-		//tempProps.toArray(newArray);
+		
 		LinkedHashSet<String> set = new LinkedHashSet<String>(tempProps);
 		tempProps.clear();
 		tempProps.addAll(set);
 		set.clear();
+		
 		this.locationCriteria = tempProps;
 		
 		String[] line;
@@ -191,5 +190,24 @@ public class Location implements Comparable{
 			return L2Length.compareTo(L1Length);
 		}
 	};
+	
+	@Override
+	public boolean equals(Object other) {
+		if(this == other) {return true;}
+		if(other == null) {return false;}
+		if(getClass() != other.getClass()) {return false;}
+		if(!this.getLocationName().contentEquals(((Location) other).getLocationName())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 7 * locationName.length() + 5*locationCriteria.size()+3*mandatoryAssignments.size()+numberOfConstraints;
+		return result;
+	}
 
 }

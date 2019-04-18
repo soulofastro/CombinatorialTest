@@ -14,6 +14,8 @@ public class Item implements Comparable{
 	private Integer numberOfConstraints = 0;
 	//variables minus constraints can't be negative
 	//items in file/list must be arranged from most to least constrained. (most to least properties)
+	private Integer assignmentLimit = 0; // The limit on how many times this item can be assigned
+	private Integer numberOfTimesAssigned = 0; // The number of times this item has been assigned to a location
 
 	/* Constructors */
 	public Item() {
@@ -23,6 +25,19 @@ public class Item implements Comparable{
 	}
 	
 	/* setters and getters */
+	public Integer getNumberOfTimesAssigned() {
+		return numberOfTimesAssigned;
+	}
+	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
+		this.numberOfTimesAssigned = numberOfTimesAssigned;
+	}
+	
+	public Integer getAssignmentLimit() {
+		return assignmentLimit;
+	}
+	public void setAssignmentLimit(Integer assignmentLimit) {
+		this.assignmentLimit = assignmentLimit;
+	}
 	public Integer getNumberOfConstraints() {
 		return numberOfConstraints;
 	}
@@ -53,6 +68,8 @@ public class Item implements Comparable{
 		tempProps.addAll(set);
 		set.clear();
 		this.itemProperties = tempProps;
+		// remove item assignment limit from properties
+		this.itemProperties.remove(1);
 		
 		String[] line;
 		/* go through the item's properties and count the number of constraints */
@@ -184,4 +201,24 @@ public class Item implements Comparable{
 				return item2Length.compareTo(item1Length);
 		}
 	};
+	
+	@Override
+	public boolean equals(Object other) {
+		if(this == other) {return true;}
+		if(other == null) {return false;}
+		if(getClass() != other.getClass()) {return false;}
+		if(!this.getItemName().contentEquals(((Item) other).getItemName())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 7 * itemName.length() + 5*itemProperties.size()+numberOfConstraints;
+		return result;
+	}
+
 }
