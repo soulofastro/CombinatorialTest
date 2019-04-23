@@ -13,6 +13,8 @@ public class Location implements Comparable{
 										// "class requirements" and/or time slot requirements
 	private ArrayList<Item> mandatoryAssignments = new ArrayList<Item>();
 	private Integer numberOfConstraints = 0;
+	private Integer assignmentLimit = 1; // The limit on how many times this item can be assigned
+	private Integer numberOfTimesAssigned = 0; // The number of times this item has been assigned to a location
 	
 	/* constructors */
 	public Location() {
@@ -208,6 +210,18 @@ public class Location implements Comparable{
 		int result = 0;
 		result = 7 * locationName.length() + 5*locationCriteria.size()+3*mandatoryAssignments.size()+numberOfConstraints;
 		return result;
+	}
+	public Integer getAssignmentLimit() {
+		return assignmentLimit;
+	}
+	public void setAssignmentLimit(Integer assignmentLimit) {
+		this.assignmentLimit = assignmentLimit;
+	}
+	public Integer getNumberOfTimesAssigned() {
+		return numberOfTimesAssigned;
+	}
+	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
+		this.numberOfTimesAssigned = numberOfTimesAssigned;
 	}
 
 }

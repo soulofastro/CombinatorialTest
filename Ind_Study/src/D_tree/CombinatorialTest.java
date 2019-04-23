@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 /*
  *  An item is equivalent to a Professor, class, or any object that can be placed into something.
@@ -35,35 +36,22 @@ public class CombinatorialTest
     	for(String fileNames : file.list()) System.out.println(fileNames);
     	*/
     	
-    	items = readItemFile("itemsSimple.txt");
+    	items = readItemFile("Professors.txt");
     	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
-    	for (Item item : items) {
-    		System.out.print("Item Name: "+ item.getItemProperties().get(0)+", Constraints:->");
-    		for (int i=1;i<item.getItemProperties().size();i++) {
-    			System.out.print(" "+item.getItemProperties().get(i));
-    		}
-    		System.out.print(" <-|| Number of Constraints: "+item.getNumberOfConstraints());
-    		System.out.println();
-    	}
-    	System.out.println();
+    	printItemList(items);
+    	
     	
     	AssignmentTracker.newTracker(items);
     	AssignmentTracker.add(new Item("null"));
     	AssignmentTracker.add(new Item("No item assigned"));
     	
-    	locations = readLocationFile("locationsSimple.txt");
-    	for (Location location: locations) {
-    		System.out.print("Location name: "+ location.getLocationCriteria().get(0)+",Constraints:->");
-    		for (int i=1; i<location.getLocationCriteria().size();i++) {
-    			System.out.print(" "+ location.getLocationCriteria().get(i));
-    		}
-    		System.out.print(" <-|| Number of Constraints: "+location.getNumberOfConstraints());
-    		System.out.println();
-    	}
-    	System.out.println();
+    	locations = readLocationFile("Classes.txt");
+    	printLocationList(locations);
+
     	
     	/* constraints check */
-    	ConstraintsCheck.generateCheck(items,locations);
+//    	ConstraintsCheck.generateCheckWithoutAND(items,locations);
+    	ConstraintsCheck.generateCheckWithAND(items,locations);
     	
     	/* Look at each location and assign an item to it */
     	/* This generates a decision node that we can later revisit */
@@ -72,7 +60,8 @@ public class CombinatorialTest
     	decisionNumber = generateDecisionTree(locations, itemClone);
     	
     	/* Display Locations and item assigned to each location */
-    	printDecisionTree(decisionNumber);
+//    	printDecisionTree(decisionNumber);
+    	printPlainDecisionTree(decisionNumber);
 
     	
     	/* Change a decision and display updated list */
@@ -100,11 +89,38 @@ public class CombinatorialTest
 //    	System.out.println("\nList after test case change:\n");
 //    	printDecisionTree(decisionNumber);
     	
+
     	for (Item item : items) {
-    		System.out.println("Item Name: "+ item.getItemProperties().get(0)+", Times assigned: "+item.getNumberOfTimesAssigned());
+    		System.out.println("Item Name: "+ item.getItemProperties().get(0)+", Times assigned: "+item.getNumberOfTimesAssigned()+" of "+item.getAssignmentLimit());
     	}
     	System.out.println();
     }
+
+	private static void printLocationList(ArrayList<Location> locations) {
+    	for (Location location: locations) {
+    		System.out.print("Location name: "+ location.getLocationCriteria().get(0)+",Constraints:->");
+    		for (int i=1; i<location.getLocationCriteria().size();i++) {
+    			System.out.print(" "+ location.getLocationCriteria().get(i));
+    		}
+    		System.out.print(" <-|| Number of Constraints: "+location.getNumberOfConstraints());
+    		System.out.println();
+    	}
+    	System.out.println();
+		
+	}
+
+	private static void printItemList(ArrayList<Item> items) {
+		for (Item item : items) {
+    		System.out.print("Item Name: "+ item.getItemProperties().get(0)+", Constraints:->");
+    		for (int i=1;i<item.getItemProperties().size();i++) {
+    			System.out.print(" "+item.getItemProperties().get(i));
+    		}
+    		System.out.print(" <-|| Number of Constraints: "+item.getNumberOfConstraints());
+    		System.out.println();
+    	}
+    	System.out.println();
+		
+	}
 
 	/* This Method prints the linked list decision tree */
 	private static void printDecisionTree(ArrayList<decision> decisionNumber) {
@@ -115,6 +131,28 @@ public class CombinatorialTest
 				decisionNumber.get(i).printConstrainedChoices();
 				decisionNumber.get(i).printUnconstrainedChoices();
 				System.out.println();
+			}
+    	}
+    	catch(Exception e) {
+    		// Location runs into null assignment
+    		System.out.println("Assignment error. Too many or incompatible constraints likely.\nMake sure items with NA preference are last in txt file.");
+    	}
+		
+	}
+	/* This Method prints the linked list decision tree in ascending order*/
+	private static void printPlainDecisionTree(ArrayList<decision> decisionNumber) {
+		ArrayList<decision> dTree = new ArrayList<decision>(decisionNumber);
+		Collections.sort(dTree,(decision1, decision2) -> Integer.parseInt(decision1.getLocation().getLocationName()) - Integer.parseInt(decision2.getLocation().getLocationName()));		
+    	try {
+			for(int i=0; i<dTree.size(); i++) {	
+				Integer y = i+1;
+				System.out.println("Decision " + y.toString() + ": "+"Location-> "+ dTree.get(i).getLocation().getLocationName() + ", item-> "+ dTree.get(i).getDecisionSelected());
+//				if(!dTree.get(i).getDecisionSelected().contentEquals("No item assigned")) {
+//					System.out.print("		Matched properties when this decision was made: ");
+//					for(String match: dTree.get(i).getMatches()) {System.out.print(" "+ match);}
+//					System.out.println();
+//				}	
+			System.out.println();
 			}
     	}
     	catch(Exception e) {
@@ -176,13 +214,6 @@ public class CombinatorialTest
        			decisionTree.get(i).setItemAssigned(item);
     			
     			AssignmentTracker.increaseCounts(item);
-				/*if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
-					Integer index = AssignmentTracker.itemAssCount.indexOf(item);
-					Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
-					count += 1;
-					AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
-				}*/
-    			
     			
     			decisionTree.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
     			if(item.getItemName().contentEquals(noItem)) {
@@ -210,9 +241,6 @@ public class CombinatorialTest
     		}
     	}
     	// Finally, go back and check for locations with "No item assigned" and check to see if one item in the original list fit
-    	
-    	// I should do this pass only if it passes a constraints check
-    	// TODO
     	
     	for(decision finalPass: decisionTree) {
     		//System.out.println("xxxx loc: "+finalPass.getLocation().getLocationName());
@@ -301,6 +329,8 @@ public class CombinatorialTest
 		return decisionNumber;
 	}
 
+	/** not sure how getItemAssigned().getItemProperties().addAll(1, getLocation().getLocationCriteria()); in "decision" class will alter when I have to change a decision **/
+	// keep an eye out for odd behavior!
 	/* THIS IS WHERE I CHANGE A DECISION AT A LOCATION */
 	/* change item assigned to this location to newItem */
 	/* arguments are ("where you want to put the new item", "the new item you want to insert", "complete location list")*/

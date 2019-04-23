@@ -12,12 +12,38 @@ public class decision {
 
 	private ArrayList<Item> unconstrainedChoices;
 	private ArrayList<Item> constrainedChoices; 
+	private ArrayList<String> ItemLocationMatches = new ArrayList<String>();
 	private Item itemAssigned;
 	private Location location;
 	
 	/* Given a location, select an item from a list */
 	public decision(Location location) {
 		setLocation(location);
+	}
+	
+	public ArrayList<String> getMatches(){	
+		ArrayList<String> temp = new ArrayList<String>(itemAssigned.getItemProperties());
+		temp.addAll(location.getLocationCriteria());
+		
+		HashMap<String,Integer> elementCountMap = new HashMap<String,Integer>();
+		
+		for(String i: temp) {
+			if(elementCountMap.containsKey(i))
+				elementCountMap.put(i, elementCountMap.get(i)+1);
+			else
+				elementCountMap.put(i, 1);
+		}
+		int frequency = 1;
+		
+		Set<Entry<String, Integer>> entrySet = elementCountMap.entrySet();
+		
+		for (Entry<String, Integer> entry: entrySet) {
+			if(entry.getValue() > frequency) {
+				ItemLocationMatches.add(entry.getKey());
+			}
+		}
+		ArrayList<String> matches = new ArrayList<String>(ItemLocationMatches);
+		return matches;
 	}
 
 	/* THIS IS WHERE I ASSIGN AN ITEM TO A LOCATION */
@@ -27,8 +53,6 @@ public class decision {
 		// create a list of constrained choices from a list of unconstrained choices
 		setConstrainedChoices(unconClone);
 		
-		// old way: then pick the first item in the constrained list and assign it to this location.
-		//			this is now done after first pass through.
 		// NEW WAY: Pick item with the most occurrences in the constrained list
 		Item item;
 		try {
@@ -45,12 +69,6 @@ public class decision {
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
-			/*if(!item.getItemName().equals("null")){
-				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
-				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
-				count += 1;
-				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
-			}*/
 			AssignmentTracker.increaseCounts(item);
 			
 			// Remove item selected from unconstrained list
@@ -71,8 +89,6 @@ public class decision {
 		// create a list of constrained choices from a list of unconstrained choices
 		setConstrainedChoices(unconClone);
 		
-		// old way: then pick the first item in the constrained list and assign it to this location.
-		//			this is now done after first pass through.
 		// NEW WAY: Pick item with the most occurrences in the constrained list
 		Item item;
 		try {
@@ -89,12 +105,6 @@ public class decision {
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
-			/*if(!item.getItemName().equals("null")){
-				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
-				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
-				count += 1;
-				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
-			}*/
 			AssignmentTracker.increaseCounts(item);
 			
 			// Remove item selected from unconstrained list
@@ -122,22 +132,15 @@ public class decision {
 		}
 		Item element = new Item();
 		int frequency = 1;
-		//int oldFrequency = 1;
 		
 		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
 		
-		//StringBuffer NA = new StringBuffer("[NA]");
 		for (Entry<Item, Integer> entry: entrySet) {
-			if(entry.getValue() > frequency /*&& frequency > oldFrequency*/) {
-				//oldFrequency = frequency;
+			if(entry.getValue() > frequency) {
 				element = entry.getKey();
 				frequency = entry.getValue();
 			}
 		}
-		/*
-		if(constrainedChoices.size() == 1) {
-			element = constrainedChoices.get(0);
-		}*/
 		/******
         if(frequency > 1)
         {

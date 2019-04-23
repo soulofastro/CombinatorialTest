@@ -198,7 +198,7 @@ public class Item implements Comparable{
 		public int compare(Item item1, Item item2) {
 				Integer item1Length = item1.getNumberOfConstraints();
 				Integer item2Length = item2.getNumberOfConstraints();
-				return item2Length.compareTo(item1Length);
+				return item1Length.compareTo(item2Length);
 		}
 	};
 	
