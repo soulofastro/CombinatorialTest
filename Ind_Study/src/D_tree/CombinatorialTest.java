@@ -36,7 +36,7 @@ public class CombinatorialTest
     	for(String fileNames : file.list()) System.out.println(fileNames);
     	*/
     	
-    	items = readItemFile("Professors.txt");
+    	items = readItemFile("itemsSimple.txt");
     	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
     	printItemList(items);
     	
@@ -45,7 +45,7 @@ public class CombinatorialTest
     	AssignmentTracker.add(new Item("null"));
     	AssignmentTracker.add(new Item("No item assigned"));
     	
-    	locations = readLocationFile("Classes.txt");
+    	locations = readLocationFile("locationsSimple.txt");
     	printLocationList(locations);
 
     	
@@ -142,7 +142,8 @@ public class CombinatorialTest
 	/* This Method prints the linked list decision tree in ascending order*/
 	private static void printPlainDecisionTree(ArrayList<decision> decisionNumber) {
 		ArrayList<decision> dTree = new ArrayList<decision>(decisionNumber);
-		Collections.sort(dTree,(decision1, decision2) -> Integer.parseInt(decision1.getLocation().getLocationName()) - Integer.parseInt(decision2.getLocation().getLocationName()));		
+		
+//		Collections.sort(dTree,(decision1, decision2) -> Integer.parseInt(decision1.getLocation().getLocationName()) - Integer.parseInt(decision2.getLocation().getLocationName()));		
     	try {
 			for(int i=0; i<dTree.size(); i++) {	
 				Integer y = i+1;
@@ -164,7 +165,7 @@ public class CombinatorialTest
 
 	/*This is where I generate the decision tree */
 	public static ArrayList<decision> generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
-		// This is the first pass through the tree, where I remove mandatory assignments from consideration
+		// This is the first pass through the tree, where I add mandatory assignments into a list
 		ArrayList<decision> decisionTree = new ArrayList<decision>();
 		
 		ArrayList<Item> mandatoryAss = new ArrayList<Item>();
@@ -175,8 +176,11 @@ public class CombinatorialTest
 		}
 		// This is the second pass through the tree, assigning normally
 		
-		// look at all mandatory assignments, see how many each one is assigned and increment counts
-		// then just assign mandos without checking to see if they are at assignment limit
+		// look at all mandatory assignments, see how often each one must assigned and increment counts
+		// then just assign mandos at their specified location without checking to see if they are at assignment limit
+		// e.g. if x must be assigned at y, but x has an assignment limit of 2, increment x by 1, so it has one remaining
+		//		then it will be assigned somewhere and incremented to 2, and when the software goes to assign it to the mand ass
+		// 		location, it will do so and not increment assignment count (since I did it at the beginning).
 		for(Item item: mandatoryAss) {
 			AssignmentTracker.increaseCounts(item);
 		}
@@ -184,8 +188,6 @@ public class CombinatorialTest
     	for (int i=0; i<locations.size(); i++) {    		
     		decision decision_choice = new decision(locations.get(i)); 		
     		ArrayList<Item> itemClone = new ArrayList<Item>(items);
-    		//itemClone.removeAll(mandatoryAss);
-    		//items.removeAll(mandatoryAss);
     		decision_choice.setUnconstrainedChoices(itemClone);		
     		decision_choice.setDecisionSelection(items);		  		
     		decisionTree.add(decision_choice); 		
@@ -205,6 +207,7 @@ public class CombinatorialTest
     	StringBuffer noItem = new StringBuffer("No item assigned");
     	
     	/* Now revisit each decision node with a "null" assigned decision and select first item from new constrained lists.*/
+    	/* these constrained lists should be composed only of available items */
     	for(int i=0;i<decisionTree.size();i++) { // new loop
        		if(decisionTree.get(i).getDecisionSelected().contentEquals(NA)) {
        			Item item = new Item("No item assigned");
@@ -215,12 +218,13 @@ public class CombinatorialTest
     			
     			AssignmentTracker.increaseCounts(item);
     			
+    			// remove this assigned item from it's decision lists
     			decisionTree.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
     			if(item.getItemName().contentEquals(noItem)) {
     				decisionTree.get(i).getUnconstrainedChoices().removeAll(Collections.singleton(item));
     				decisionTree.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
     			}
-    			// Now remove that item from the choice lists that follow
+    			// Now remove the assigned item from the choice lists that follow
     			for(int j=i+1;j<decisionTree.size();j++) {
     				if(AssignmentTracker.atLimit(item)){
     					decisionTree.get(j).getConstrainedChoices().removeAll(Collections.singleton(item));

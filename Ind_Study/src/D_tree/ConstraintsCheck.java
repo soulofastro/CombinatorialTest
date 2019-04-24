@@ -153,7 +153,7 @@ public class ConstraintsCheck {
 
 		setConstraintsArray(constraintArray);
 		optimizeConstraintsArray();
-		printConstraintsArray();
+		//printConstraintsArray();
 	}
 
 	/**

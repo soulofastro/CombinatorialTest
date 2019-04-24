@@ -131,14 +131,18 @@ public class decision {
 				elementCountMap.put(i, 1);
 		}
 		Item element = new Item();
-		int frequency = 1;
 		
 		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
+		double frequency = constrainedChoices.size()/entrySet.size();  // if all elements in set are equally likely, don't pick any of them yet
 		
 		for (Entry<Item, Integer> entry: entrySet) {
 			if(entry.getValue() > frequency) {
 				element = entry.getKey();
 				frequency = entry.getValue();
+				// thought: if I see another entry with the same value, set my element back to null
+			}
+			else if(entry.getValue() == frequency) { //TODO tag in case this messes everything up
+				element = new Item();
 			}
 		}
 		/******
@@ -175,23 +179,20 @@ public class decision {
 				elementCountMap.put(i, 1);
 		}
 		Item element = constrainedChoices.get(0);
-		int frequency = 1;
-		//int oldFrequency = 1;
 		
 		Set<Entry<Item, Integer>> entrySet = elementCountMap.entrySet();
+		double frequency = constrainedChoices.size()/entrySet.size();
 		
-		//StringBuffer NA = new StringBuffer("[NA]");
 		for (Entry<Item, Integer> entry: entrySet) {
-			if(entry.getValue() > frequency /*&& frequency > oldFrequency*/) {
-				//oldFrequency = frequency;
+			if(entry.getValue() > frequency) {
 				element = entry.getKey();
 				frequency = entry.getValue();
+				// thought: if I see another entry with the same value, set my element back to null
+			}
+			else if(entry.getValue() == frequency) { //TODO tag in case this messes everything up
+				element = new Item();
 			}
 		}
-		/*
-		if(constrainedChoices.size() == 1) {
-			element = constrainedChoices.get(0);
-		}*/
 		/******
         if(frequency > 1)
         {
