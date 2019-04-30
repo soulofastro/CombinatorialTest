@@ -1,4 +1,4 @@
-package D_tree;
+package model;
 
 import java.util.ArrayList;
 import java.util.Arrays;

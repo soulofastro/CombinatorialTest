@@ -1,4 +1,4 @@
-package D_tree;
+package model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +57,7 @@ public class decision {
 		Item item;
 		try {
 			if(location.getMandatoryAssignments().size() > 0) {
+//				System.out.println("I FOUND A MANDATORY ASSIGNMENT AT LINE 60. ITEM: "+location.getMandatoryAssignments().get(0).getItemName());
 				item = location.getMandatoryAssignments().get(0);/*top manAss*/
 				AssignmentTracker.decreaseCounts(item); 
 				//decrease item count here because I increased it artificially earlier
@@ -66,6 +67,7 @@ public class decision {
 				item = getBestFit();
 			}
 			setItemAssigned(item);
+//			System.out.println("(LINE 70) I JUST ASSIGNED "+this.getItemAssigned().getItemName() +" TO LOCATION "+ this.getLocation().getLocationName());
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
@@ -93,6 +95,7 @@ public class decision {
 		Item item;
 		try {
 			if(location.getMandatoryAssignments().size() > 0) {
+				System.out.println("I FOUND A MANDATORY ASSIGNMENT AT LINE 98");
 				item = location.getMandatoryAssignments().get(0);/*top manAss*/
 				AssignmentTracker.decreaseCounts(item); 
 				//decrease item count here because I increased it artificially earlier
@@ -102,6 +105,7 @@ public class decision {
 				item = getBestFit(oldItem);
 			}
 			setItemAssigned(item);
+			System.out.println("(LINE 108) I JUST ASSIGNED "+this.getItemAssigned().getItemName() +" TO LOCATION "+ this.getLocation().getLocationName());
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
@@ -357,7 +361,7 @@ public class decision {
 					String[] separatedCrits = critString.split("&");
 					for(String props: separatedProps) {
 						for(String crits: separatedCrits) {
-							//System.out.println(props+"=="+crits+" ?");
+//							System.out.println("ITEM: "+ item.getItemName()+", "+props+"=="+crits+" ?");
 							if(props.contentEquals(crits)) {
 								this.constrainedChoices.add(item);
 							}
@@ -366,9 +370,18 @@ public class decision {
 				}
 			}
 		}
-		if(this.constrainedChoices.size()>1 && getBestFit()!=null) {
-			Item newItem = getBestFit();
-			//System.out.println("line190 setItem to newItem "+ newItem.getItemName()+"\n");
+		
+		Item newItem = new Item();
+		try {
+			newItem = getBestFit();
+		}
+		catch(Exception e){
+			newItem = new Item();
+			// avoids divide by zero error
+		}
+		
+		if(this.constrainedChoices.size()>1 && !newItem.getItemName().contentEquals("null")) {
+//			System.out.println("line376 setItem to newItem "+ newItem.getItemName()+"\n");
 			if(AssignmentTracker.checkCount(newItem)) {
 				setItemAssigned(newItem);
 				AssignmentTracker.increaseCounts(newItem);
@@ -376,9 +389,11 @@ public class decision {
 			//unconstrainedChoices.remove(newItem);
 		}
 		else if(this.constrainedChoices.size()>0) {
-			if(AssignmentTracker.checkCount(this.constrainedChoices.get(0))) {
-				setItemAssigned(this.constrainedChoices.get(0));
-				AssignmentTracker.increaseCounts(this.constrainedChoices.get(0));
+			if(AssignmentTracker.checkCount(this.constrainedChoices.get(this.constrainedChoices.size()-1))) {
+				newItem = this.constrainedChoices.get(this.constrainedChoices.size()-1);
+//				System.out.println("line384 setItem to newItem "+ newItem.getItemName()+"\n");
+				setItemAssigned(newItem);
+				AssignmentTracker.increaseCounts(this.constrainedChoices.get(this.constrainedChoices.size()-1));
 			}
 			//unconstrainedChoices.remove(constrainedChoices.get(0));
 		}
@@ -409,18 +424,22 @@ public class decision {
 	public void printConstrainedChoices() {
 		System.out.println("Location "+ getLocation().getLocationName() + " constrained choice list:");
     	for (int j=0; j < constrainedChoices.size(); j++) {
-    		Integer i = 1;
-    		System.out.println("Constrained Item "+ i.toString() +" Name: "+ constrainedChoices.get(j).getItemName());
-    		i++;
+    		System.out.println("Constrained Item Name: "+ constrainedChoices.get(j).getItemName());
     	}
 	}
 	
 	public void printUnconstrainedChoices() {
 		System.out.println("Location "+ getLocation().getLocationName() + " unconstrained choice list:");
     	for (int j=0; j < unconstrainedChoices.size(); j++) {
-    		Integer i = 1;
-    		System.out.println("Unconstrained Item "+ i.toString() +" Name: "+ unconstrainedChoices.get(j).getItemName());
-    		i++;
+    		System.out.println("Unconstrained Item Name: "+ unconstrainedChoices.get(j).getItemName());
     	}
+	}
+
+	public void printMandoAssignments() {
+		System.out.println("Location "+ getLocation().getLocationName() + " mandatory assignment list:");
+    	for (int j=0; j < getLocation().getMandatoryAssignments().size(); j++) {
+    		System.out.println("Mandatory assignment Item: "+ getLocation().getMandatoryAssignments().get(j).getItemName());
+    	}
+		
 	}
 }

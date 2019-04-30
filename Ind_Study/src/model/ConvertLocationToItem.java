@@ -1,4 +1,4 @@
-package D_tree;
+package model;
 
 public class ConvertLocationToItem extends Item {
 

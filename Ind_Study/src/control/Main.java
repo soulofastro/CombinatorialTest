@@ -1,4 +1,4 @@
-package D_tree;
+package control;
 
 /*
  *  NOTE: Only use spaces when absolutely necessary. The line parser treats everything between ',' as separate objects.
@@ -19,6 +19,8 @@ package D_tree;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import model.CombinatorialTest;
 
 public class Main {
 	

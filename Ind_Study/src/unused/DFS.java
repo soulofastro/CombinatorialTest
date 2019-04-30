@@ -1,4 +1,4 @@
-package Examples;
+package unused;
 
 import java.util.*;
  
@@ -62,7 +62,7 @@ public class DFS
 		}
     }
  
-    public static void main(String args[])
+    public static void Main(String args[])
     {
         DFS obj = new DFS(10);
         

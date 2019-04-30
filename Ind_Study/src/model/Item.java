@@ -1,71 +1,88 @@
-package D_tree;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
+package model;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 
 @SuppressWarnings("rawtypes")
-public class Location implements Comparable{
+public class Item implements Comparable{
 	
-	private String locationName = "";
-	private ArrayList<String> locationCriteria;  // string array for now until i figure out a 
-										// better way. This is where I will store
-										// "class requirements" and/or time slot requirements
-	private ArrayList<Item> mandatoryAssignments = new ArrayList<Item>();
+	private String itemName = "null";
+	private ArrayList<String> itemProperties; // placeholder until I can think of something better
+									 // This is where I will store "professor preferences"
+									 // and/or "class requirements"
 	private Integer numberOfConstraints = 0;
-	private Integer assignmentLimit = 1; // The limit on how many times this item can be assigned
+	//variables minus constraints can't be negative
+	//items in file/list must be arranged from most to least constrained. (most to least properties)
+	private Integer assignmentLimit = 0; // The limit on how many times this item can be assigned
 	private Integer numberOfTimesAssigned = 0; // The number of times this item has been assigned to a location
-	
-	/* constructors */
-	public Location() {
-	}
-	public Location(String locName) {
-		setLocationName(locName);
-	}
 
-	/* Setters and getters  */
+	/* Constructors */
+	public Item() {
+	}
+	public Item(String name) {
+		setItemName(name);
+	}
+	
+	/* setters and getters */
+	public Integer getNumberOfTimesAssigned() {
+		return numberOfTimesAssigned;
+	}
+	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
+		this.numberOfTimesAssigned = numberOfTimesAssigned;
+	}
+	
+	public Integer getAssignmentLimit() {
+		return assignmentLimit;
+	}
+	public void setAssignmentLimit(Integer assignmentLimit) {
+		this.assignmentLimit = assignmentLimit;
+	}
 	public Integer getNumberOfConstraints() {
 		return numberOfConstraints;
 	}
-	public String getLocationName() {
-		return locationName;
+	
+	public String getItemName() {
+		return itemName;
 	}
-	public void setLocationName(String locationName) {
-		this.locationName = locationName;
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
 	}
-	public ArrayList<String> getLocationCriteria() {
-		return locationCriteria;
+	public ArrayList<String> getItemProperties() {
+		return itemProperties;
 	}
-	public void setLocationCriteria(String[] locationCrits) {
+	public void setItemProperties(String[] itemProps) {
 		ArrayList<String> tempProps = new ArrayList<String>();
 		/* This is where I turn ORs into array elements. Example: [A]&[B|C] becomes [A]&[B],[A]&[C] */
-		for(int i=0; i < locationCrits.length;i++) {
+		for(int i=0; i < itemProps.length;i++) {
 			//if(itemProps[i].indexOf("|") >= 0) {
-				tempProps.addAll(propertyExpansion(locationCrits[i]));
+				tempProps.addAll(propertyExpansion(itemProps[i]));
 			//}
 		}
 		
 		/* End */
-		
+		//String[] newArray = new String[tempProps.size()+itemProps.length];
+		//tempProps.toArray(newArray);
 		LinkedHashSet<String> set = new LinkedHashSet<String>(tempProps);
 		tempProps.clear();
 		tempProps.addAll(set);
 		set.clear();
-		
-		this.locationCriteria = tempProps;
+		this.itemProperties = tempProps;
+		// remove item assignment limit from properties
+		this.itemProperties.remove(1);
 		
 		String[] line;
-		/* go through the location's criteria and count the number of constraints */
-		if(locationCriteria.size() > 1) {
-			if(!locationCriteria.get(1).contentEquals("[NA]")) { 				
+		/* go through the item's properties and count the number of constraints */
+		if(itemProperties.size() > 1) {
+			if(!itemProperties.get(1).contentEquals("[NA]")) { 				
 				ArrayList<String> temp = new ArrayList<String>();	
-				for (int i=1;i<locationCriteria.size();i++) {				
-					if(locationCriteria.get(i).indexOf("&") >= 0) {
+				for (int i=1;i<itemProperties.size();i++) {				
+					if(itemProperties.get(i).indexOf("&") >= 0) {
 						numberOfConstraints = numberOfConstraints +1;
 						//System.out.println("Inside count loop. Constraint count=" +numberOfConstraints);
 					}
 					//[x]&[y] contains three constraint properties => [x][y], [x], and [y]	
-					line = locationCriteria.get(i).split("&");
+					line = itemProperties.get(i).split("&");
 					for(String string: line) {
 						temp.add(string);
 					}
@@ -78,6 +95,7 @@ public class Location implements Comparable{
 				set.clear();
 			}
 		}
+		
 	}
 	
 	/* This is where I turn ORs into array elements. Example: [A]&[B|C] becomes [A]&[B],[A]&[C] */
@@ -165,31 +183,22 @@ public class Location implements Comparable{
 	    }
 	    return count;
 	}
-	public ArrayList<Item> getMandatoryAssignments() {
-		return mandatoryAssignments;
-	}
-	public void setMandatoryAssignments(ArrayList<Item> mandatoryAssignments) {
-		this.mandatoryAssignments = mandatoryAssignments;
-	}
-	public void assignMandatoryItem(Item item) {
-		this.mandatoryAssignments.add(item);
-	}
-	
 	
 	@Override
 	public int compareTo(Object arg0) {
-		int compareLength=((Location)arg0).getNumberOfConstraints();
+		
+		int compareLength=((Item)arg0).getNumberOfConstraints();
 		if(compareLength > 0)
 			return this.numberOfConstraints-compareLength;
 		else
 			return 0;
 	}
 	
-	public static Comparator<Location> critComparator = new Comparator<Location>(){
-		public int compare(Location L1, Location L2) {
-			Integer L1Length = L1.getNumberOfConstraints();
-			Integer L2Length = L2.getNumberOfConstraints();
-			return L2Length.compareTo(L1Length);
+	public static Comparator<Item> PropComparator = new Comparator<Item>(){
+		public int compare(Item item1, Item item2) {
+				Integer item1Length = item1.getNumberOfConstraints();
+				Integer item2Length = item2.getNumberOfConstraints();
+				return item1Length.compareTo(item2Length);
 		}
 	};
 	
@@ -198,7 +207,7 @@ public class Location implements Comparable{
 		if(this == other) {return true;}
 		if(other == null) {return false;}
 		if(getClass() != other.getClass()) {return false;}
-		if(!this.getLocationName().contentEquals(((Location) other).getLocationName())) {
+		if(!this.getItemName().contentEquals(((Item) other).getItemName())) {
 			return false;
 		}
 		
@@ -208,20 +217,8 @@ public class Location implements Comparable{
 	@Override
 	public int hashCode() {
 		int result = 0;
-		result = 7 * locationName.length() + 5*locationCriteria.size()+3*mandatoryAssignments.size()+numberOfConstraints;
+		result = 7 * itemName.length();
 		return result;
-	}
-	public Integer getAssignmentLimit() {
-		return assignmentLimit;
-	}
-	public void setAssignmentLimit(Integer assignmentLimit) {
-		this.assignmentLimit = assignmentLimit;
-	}
-	public Integer getNumberOfTimesAssigned() {
-		return numberOfTimesAssigned;
-	}
-	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
-		this.numberOfTimesAssigned = numberOfTimesAssigned;
 	}
 
 }

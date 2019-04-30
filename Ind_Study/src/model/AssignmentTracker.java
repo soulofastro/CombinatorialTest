@@ -1,4 +1,4 @@
-package D_tree;
+package model;
 
 import java.util.ArrayList;
 
@@ -18,8 +18,17 @@ public class AssignmentTracker extends CombinatorialTest {
 		itemAssCount.remove(itemNull);*/
 	}
 	
+	public static int showCount(Item item) {
+		if(!item.getItemName().equals("null item")||!item.getItemName().equals("No item assigned")||item!=null){
+			Integer index = itemAssCount.indexOf(item);
+			Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
+			return count;
+		}
+		return 0;
+	}
+	
 	public static void increaseCounts(Item item) {
-		if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
+		if(!item.getItemName().equals("null item")||!item.getItemName().equals("No item assigned")||item!=null){
 			Integer index = itemAssCount.indexOf(item);
 			Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
 			count += 1;
@@ -41,20 +50,25 @@ public class AssignmentTracker extends CombinatorialTest {
 
 	// use this if you want to add an item
 	public static boolean checkCount(Item item) {
-		Integer index = itemAssCount.indexOf(item);
-		Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
-		if(count < itemAssCount.get(index).getAssignmentLimit()) {
-			return true;
+		if(!item.getItemName().equals("null")||item.getItemName().equals("No item assigned")){
+			Integer index = itemAssCount.indexOf(item);
+			Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
+			if(count < itemAssCount.get(index).getAssignmentLimit()) {
+				return true;
+			}
 		}
 		return false;
 	}
 	
 	// use this if you want to remove an item
 	public static boolean atLimit(Item item) {
-		Integer index = itemAssCount.indexOf(item);
-		Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
-		if(count >= itemAssCount.get(index).getAssignmentLimit()) {
-			return true;
+		if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
+//			System.out.println("At limit check for "+item.getItemName());
+			Integer index = itemAssCount.indexOf(item);
+			Integer count = itemAssCount.get(index).getNumberOfTimesAssigned();
+			if(count >= itemAssCount.get(index).getAssignmentLimit()) {
+				return true;
+			}
 		}
 		return false;
 	}

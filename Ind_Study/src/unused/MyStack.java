@@ -1,4 +1,4 @@
-package Examples;
+package unused;
 	// Java code for stack implementation 
 
 public class MyStack {
@@ -26,7 +26,7 @@ public class MyStack {
    public boolean isFull() {
       return (top == maxSize - 1);
    }
-   public static void main(String[] args) {
+   public static void Main(String[] args) {
       MyStack theStack = new MyStack(10); 
       theStack.push("A");
       theStack.push("B");
