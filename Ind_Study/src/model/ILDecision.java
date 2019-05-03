@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -12,7 +13,9 @@ public class ILDecision {
 
 	private ArrayList<Item> unconstrainedChoices;
 	private ArrayList<Item> constrainedChoices; 
+	private ArrayList<Item> partialFitChoices = new ArrayList<Item>();
 	private ArrayList<String> ItemLocationMatches = new ArrayList<String>();
+	private ArrayList<String> ItemLocationPartialMatches = new ArrayList<String>();
 	private Item itemAssigned;
 	private Location location;
 	private String decisionName;
@@ -52,6 +55,42 @@ public class ILDecision {
 			ArrayList<String> matches = new ArrayList<String>(ItemLocationMatches);
 			return matches;
 	}
+	public ArrayList<String> getPartialMatches(){	
+		ArrayList<String> temp = new ArrayList<String>();
+		for(String itemProp: itemAssigned.getItemProperties()) {
+			String[] tempIP = itemProp.split("&");
+			for(int i=0;i<tempIP.length;i++) {
+				temp.add(tempIP[i]);
+			}
+		}
+		for(String locCrit: location.getLocationCriteria()) {
+			String[] tempLC = locCrit.split("&");
+			for(int i=0;i<tempLC.length;i++) {
+				temp.add(tempLC[i]);
+			}
+		}
+		
+		
+		HashMap<String,Integer> elementCountMap = new HashMap<String,Integer>();
+		
+		for(String i: temp) {
+			if(elementCountMap.containsKey(i))
+				elementCountMap.put(i, elementCountMap.get(i)+1);
+			else
+				elementCountMap.put(i, 1);
+		}
+		int frequency = 1;
+		
+		Set<Entry<String, Integer>> entrySet = elementCountMap.entrySet();
+		
+		for (Entry<String, Integer> entry: entrySet) {
+			if(entry.getValue() > frequency) {
+				ItemLocationPartialMatches.add(entry.getKey());
+			}
+		}
+		ArrayList<String> matches = new ArrayList<String>(ItemLocationPartialMatches);
+		return matches;
+}
 	
 
 	/* THIS IS WHERE I ASSIGN AN ITEM TO A LOCATION */
@@ -447,7 +486,7 @@ public class ILDecision {
 			Item noItem = new Item("No item assigned");
 			setItemAssigned(noItem);
 		}
-			
+		this.setPartialFitChoices(new ArrayList<Item>(getConstrainedChoices()));
 		this.constrainedChoices.clear();
 	}
 	
@@ -505,5 +544,25 @@ public class ILDecision {
 		int result =0;
 		result = 5 * decisionName.length();
 		return result;
+	}
+
+	public Collection<? extends String> getItemLocationPartialMatches() {
+		return ItemLocationPartialMatches;
+	}
+
+	public ArrayList<Item> getPartialFitChoices() {
+		return partialFitChoices;
+	}
+
+	public void setPartialFitChoices(ArrayList<Item> partialFitChoices) {
+		this.partialFitChoices = partialFitChoices;
+	}
+
+	public void printPartialMatches() {
+		System.out.println("Location "+ getLocation().getLocationName() + " partial choice list:");
+    	for (int j=0; j < partialFitChoices.size(); j++) {
+    		System.out.println("partial fit Item Name: "+ partialFitChoices.get(j).getItemName());
+    	}
+		
 	}
 }

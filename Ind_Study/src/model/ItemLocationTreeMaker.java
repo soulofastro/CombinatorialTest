@@ -126,9 +126,14 @@ public class ItemLocationTreeMaker
 			for(int i=0; i<decisionNumber.size(); i++) {	
 				Integer y = i+1;
 				System.out.println("Decision " + y.toString() + ": "+"Location-> "+ decisionNumber.get(i).getLocation().getLocationName() + ", item-> "+ decisionNumber.get(i).getDecisionSelected());
-				decisionNumber.get(i).printConstrainedChoices();
-				decisionNumber.get(i).printUnconstrainedChoices();
-				decisionNumber.get(i).printMandoAssignments();
+				if(decisionNumber.get(i).getConstrainedChoices().size() >0)
+					decisionNumber.get(i).printConstrainedChoices();
+				if(decisionNumber.get(i).getUnconstrainedChoices().size() >0)
+					decisionNumber.get(i).printUnconstrainedChoices();
+				if(decisionNumber.get(i).getLocation().getMandatoryDecisionAssignments().size() > 0)
+					decisionNumber.get(i).printMandoAssignments();
+				if(decisionNumber.get(i).getPartialFitChoices().size() > 0 && !decisionNumber.get(i).getPartialFitChoices().equals(null))
+					decisionNumber.get(i).printPartialMatches();
 				System.out.println();
 			}
     	}

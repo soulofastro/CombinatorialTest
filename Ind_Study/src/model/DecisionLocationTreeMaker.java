@@ -43,15 +43,22 @@ public class DecisionLocationTreeMaker {
 				for (ILDecision selected: decisionNumber.get(i).getDecisionsAssigned()) {
 					System.out.print(selected.getDecisionName()+", ");
 				}
-				decisionNumber.get(i).printConstrainedChoices();
-				decisionNumber.get(i).printUnconstrainedChoices();
-				decisionNumber.get(i).printMandoAssignments();
+				System.out.println();
+				if(decisionNumber.get(i).getConstrainedChoices().size() >0)
+					decisionNumber.get(i).printConstrainedChoices();
+				if(decisionNumber.get(i).getUnconstrainedChoices().size() >0)
+					decisionNumber.get(i).printUnconstrainedChoices();
+				if(decisionNumber.get(i).getLocation().getMandatoryDecisionAssignments().size() > 0)
+					decisionNumber.get(i).printMandoAssignments();
+				if(decisionNumber.get(i).getPartialFitChoices().size() > 0 && !decisionNumber.get(i).getPartialFitChoices().equals(null))
+					decisionNumber.get(i).printPartialMatches();
 				System.out.println();
 			}
     	}
     	catch(Exception e) {
     		// Location runs into null assignment
     		System.out.println("Assignment error. Too many or incompatible constraints likely.\nMake sure items with NA preference are last in txt file.");
+    		e.printStackTrace();
     	}
 		
 	}
@@ -208,14 +215,38 @@ public class DecisionLocationTreeMaker {
     	}
        	
        	
-//    	decisionTree = generateMediumConfidenceDecisionTree(decisionTree);
+    	decisionTree = generateMediumConfidenceDecisionTree(decisionTree);
 //    	decisionTree = generateLowConfidenceDecisionTree(decisionTree);
 		return decisionTree;
 	}
 
 	private static ArrayList<DLDecision> generateMediumConfidenceDecisionTree(ArrayList<DLDecision> decisionTree){
-		//TODO
-		return null;
+		ArrayList<DLDecision> decisions = new ArrayList<DLDecision>(decisionTree);
+		ArrayList<ILDecision> lastNodeAssignments = new ArrayList<ILDecision>(decisions.get(decisions.size()-1).getDecisionsAssigned());
+		ArrayList<ILDecision> lastNodeUnconstrainedList = new ArrayList<ILDecision>(decisions.get(decisions.size()-1).getUnconstrainedChoices());
+		
+		for(ILDecision lastNode: lastNodeAssignments) {
+			if(DecisionAssignmentTracker.atLimit(lastNode)) {
+				lastNodeUnconstrainedList.removeAll(Collections.singleton(lastNode));
+			}
+		}
+		
+		for(int i=0; i<decisions.size(); i++) {
+			if(decisions.get(i).getDecisionsAssigned().contains(new ILDecision("No decision assigned"))) {
+				ArrayList<String> locationCrit = new ArrayList<String>(decisions.get(i).getLocation().getLocationCriteria());
+				decisions.get(i).getMediumConfidenceFit(lastNodeUnconstrainedList, locationCrit);
+				ArrayList<ILDecision> decisionAssignd = new ArrayList<ILDecision>(decisions.get(i).getDecisionsAssigned());
+				for(int j=i+1; j<decisions.size();j++) {
+					for(ILDecision dec: decisionAssignd) {
+						if(DecisionAssignmentTracker.atLimit(dec)){
+							decisions.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(dec));
+						}
+					}
+				}
+			}
+		}
+		
+		return decisions;
 	}
 	
 	

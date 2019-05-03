@@ -17,6 +17,7 @@ public class DLDecision {
 	
 	private ArrayList<ILDecision> unconstrainedChoices;
 	private ArrayList<ILDecision> constrainedChoices; 
+	private ArrayList<ILDecision> partialFitChoices = new ArrayList<ILDecision>();
 	private ArrayList<String> DecisionLocationMatches = new ArrayList<String>();
 	private ArrayList<ILDecision> decisionsAssigned;
 	private Location location;
@@ -48,9 +49,7 @@ public class DLDecision {
 				}
 				DecisionAssignmentTracker.decreaseCounts(ilDecisions); 
 			}
-//			else {
-				ilDecisions.addAll(getBestFits());
-//			}
+			ilDecisions.addAll(getBestFits()); //TODO Marker
 			setDecisionsAssigned(ilDecisions);
 			
 			//this updates how many times the decisions are assigned
@@ -102,7 +101,6 @@ public class DLDecision {
 		else {
 			pDs = (ArrayList<ILDecision>) potentialDecisions;
 		}
-					//TODO
 		return pDs;
 	}
 
@@ -273,7 +271,7 @@ public class DLDecision {
 	}
 	
 	public void printConstrainedChoices() {
-		System.out.println("\nLocation "+ getLocation().getLocationName() + " constrained choice list: ("+constrainedChoices.size()+")");
+		System.out.println("Location "+ getLocation().getLocationName() + " constrained choice list: ("+constrainedChoices.size()+")");
     	for (int j=0; j < constrainedChoices.size(); j++) {
     		System.out.println("Constrained Decision Name: "+ constrainedChoices.get(j).getDecisionName());
     	}
@@ -314,6 +312,111 @@ public class DLDecision {
 		return result;
 	}
 
+	public void getMediumConfidenceFit(ArrayList<ILDecision> lastNodeUnconstrainedList, ArrayList<String> locationCriteria) {
+		// TODO Auto-generated method stub
+		// item -> ILDecision
+//		System.out.println("GETTING MEDIUM CONFIDENCE FIT ");
+		
+		for(ILDecision decision: lastNodeUnconstrainedList) {
+//			decision.getPartialMatches();
+			
+			ArrayList<String> decisionProperties= new ArrayList<String>(decision.getPartialMatches());
+			for(String propString: decisionProperties) {
+				String[] separatedProps = propString.split("&");
+				for(String critString: locationCriteria) {
+					String[] separatedCrits = critString.split("&");
+					for(String props: separatedProps) {
+						for(String crits: separatedCrits) {
+//							System.out.println("!!!!!!!!!!!!!!!!!decision: "+ decision.getDecisionName() +", "+props+"=="+crits+" ?");
+							if(props.contentEquals(crits)) {
+								this.constrainedChoices.add(decision);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		ArrayList<ILDecision> temp = new ArrayList<ILDecision>();
+		try {
+			temp.addAll(getBestFits());
+			
+			setDecisionsAssigned(temp);
+			
+			//this updates how many times the decisions are assigned
+			DecisionAssignmentTracker.increaseCounts(temp);
+			
+			// Remove ILDecisions selected from unconstrained list
+			for (ILDecision decision: temp) {
+				if(DecisionAssignmentTracker.atLimit(decision)) {
+					this.unconstrainedChoices.remove(decision);
+				}
+			}
+		}
+		catch(Exception e){
+			ILDecision dec = new ILDecision("No decision assigned");
+			temp.add(dec);
+			setDecisionsAssigned(temp);
+			// avoids divide by zero error
+		}
+		
+		// newItem -> temp
+		if(this.constrainedChoices.size()>1 && !temp.contains(new ILDecision("null")) && !temp.contains(new ILDecision("No decision assigned"))) {
+//			System.out.println("line376 setItem to newItem "+ newItem.getItemName()+"\n");
+			for (ILDecision dec: temp) {
+				if(DecisionAssignmentTracker.atLimit(dec)) {
+					temp.remove(dec);
+				}
+			}
+			if(temp.size()> this.getAssignmentLimit()) {
+				setDecisionsAssigned((ArrayList<ILDecision>) temp.subList(0, this.getAssignmentLimit()));
+			}
+			else {
+				setDecisionsAssigned(temp);
+			}
+			DecisionAssignmentTracker.increaseCounts(temp);
+		}
+		
+		else if(this.constrainedChoices.size()>0) {
+			for(ILDecision dec: constrainedChoices)
+				if(DecisionAssignmentTracker.checkCount(dec)) {
+					temp.add(dec);
+				}
+			ILDecision dec1 = new ILDecision("No decision assigned");
+			ILDecision dec2 = new ILDecision("null");
+			temp.remove(dec1);
+			temp.remove(dec2);
+			if(temp.size()> this.getAssignmentLimit()) {
+				setDecisionsAssigned((ArrayList<ILDecision>) temp.subList(0, this.getAssignmentLimit()));
+			}
+			else {
+				setDecisionsAssigned(temp);
+			}
+			DecisionAssignmentTracker.increaseCounts(temp);
+			//unconstrainedChoices.remove(constrainedChoices.get(0));
+		}
+		else {
+			ILDecision dec = new ILDecision("No decision assigned");
+			temp.add(dec);
+			setDecisionsAssigned(temp);
+		}
+		this.setPartialFitChoices(new ArrayList<ILDecision>(getConstrainedChoices()));
+		this.constrainedChoices.clear();
+	}
 
+	public ArrayList<ILDecision> getPartialFitChoices() {
+		return partialFitChoices;
+	}
 
+	public void setPartialFitChoices(ArrayList<ILDecision> partialFitChoices) {
+		this.partialFitChoices = partialFitChoices;
+	}
+
+	public void printPartialMatches() {
+		System.out.println("Location "+ getLocation().getLocationName() + " partial choices list: ("+partialFitChoices.size()+")");
+    	for (int j=0; j < partialFitChoices.size(); j++) {
+    		System.out.println("Partial fit Decision Name: "+ partialFitChoices.get(j).getDecisionName());
+    	}
+	}
+		
 }
