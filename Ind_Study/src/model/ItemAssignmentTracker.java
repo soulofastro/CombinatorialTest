@@ -2,7 +2,7 @@ package model;
 
 import java.util.ArrayList;
 
-public class AssignmentTracker extends CombinatorialTest {
+public class ItemAssignmentTracker extends ItemLocationTreeMaker {
 	
 	public static ArrayList<Item> itemAssCount = new ArrayList<Item>();
 	
@@ -12,10 +12,6 @@ public class AssignmentTracker extends CombinatorialTest {
 	
 	public static void add(Item item) {
 		itemAssCount.add(item);
-		/*Item itemNA = new Item("No item assigned");
-		Item itemNull = new Item("null");
-		itemAssCount.remove(itemNA);
-		itemAssCount.remove(itemNull);*/
 	}
 	
 	public static int showCount(Item item) {

@@ -1,9 +1,7 @@
 package model;
 
-import java.io.BufferedReader;
 //import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,35 +14,27 @@ import java.util.LinkedHashSet;
  * 
  */
 
-public class CombinatorialTest 
+public class ItemLocationTreeMaker 
 { 
 	
 	//public static ArrayList<decision> decisionNumber = new ArrayList<decision>();	
 	public static ArrayList<Item> itemsDuplicate = new ArrayList<Item>();
 	
 	
-	public static void run() throws FileNotFoundException, IOException, Exception { 
+	public static ArrayList<ILDecision> createILtree(ArrayList<Item> itemList, ArrayList<Location> locationList) throws FileNotFoundException, IOException, Exception { 
 		
-    	ArrayList<Item> items = new ArrayList<Item>();
-    	ArrayList<Location> locations = new ArrayList<Location>();
-    	ArrayList<decision> decisionNumber = new ArrayList<decision>();
+    	ArrayList<Item> items = new ArrayList<Item>(itemList);
+    	ArrayList<Location> locations = new ArrayList<Location>(locationList);
+    	ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>();
     	
-    	/*
-    	// I made this to help me figure out where my txt files are.
-    	File file = new File(".");
-    	for(String fileNames : file.list()) System.out.println(fileNames);
-    	*/
-    	
-    	items = readItemFile("itemsSimple.txt");
     	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
     	printItemList(items);
     	
     	
-    	AssignmentTracker.newTracker(items);
-    	AssignmentTracker.add(new Item("null"));
-    	AssignmentTracker.add(new Item("No item assigned"));
+    	ItemAssignmentTracker.newTracker(items);
+    	ItemAssignmentTracker.add(new Item("null"));
+    	ItemAssignmentTracker.add(new Item("No item assigned"));
     	
-    	locations = readLocationFile("locationsSimple.txt");
     	printLocationList(locations);
 
     	
@@ -59,8 +49,8 @@ public class CombinatorialTest
     	decisionNumber = generateDecisionTree(locations, itemClone);
     	
     	/* Display Locations and item assigned to each location */
-//    	printDecisionTree(decisionNumber);
-    	printPlainDecisionTree(decisionNumber);
+    	printDecisionTree(decisionNumber);
+//    	printPlainDecisionTree(decisionNumber);
 
     	
     	/* Change a decision and display updated list */
@@ -99,7 +89,9 @@ public class CombinatorialTest
     	for (Item item : items) {
     		System.out.println("Item Name: "+ item.getItemProperties().get(0)+", Times assigned: "+item.getNumberOfTimesAssigned()+" of "+item.getAssignmentLimit());
     	}
-    	System.out.println();
+    	System.out.println("*************************************************************************************");
+    	
+    	return decisionNumber;
     }
 
 	private static void printLocationList(ArrayList<Location> locations) {
@@ -129,7 +121,7 @@ public class CombinatorialTest
 	}
 
 	/* This Method prints the linked list decision tree */
-	private static void printDecisionTree(ArrayList<decision> decisionNumber) {
+	private static void printDecisionTree(ArrayList<ILDecision> decisionNumber) {
     	try {
 			for(int i=0; i<decisionNumber.size(); i++) {	
 				Integer y = i+1;
@@ -147,14 +139,14 @@ public class CombinatorialTest
 		
 	}
 	/* This Method prints the linked list decision tree in ascending order*/
-	private static void printPlainDecisionTree(ArrayList<decision> decisionNumber) {
-		ArrayList<decision> dTree = new ArrayList<decision>(decisionNumber);
+	private static void printPlainDecisionTree(ArrayList<ILDecision> decisionNumber) {
+		ArrayList<ILDecision> dTree = new ArrayList<ILDecision>(decisionNumber);
 		
 //		Collections.sort(dTree,(decision1, decision2) -> Integer.parseInt(decision1.getLocation().getLocationName()) - Integer.parseInt(decision2.getLocation().getLocationName()));		
     	try {
 			for(int i=0; i<dTree.size(); i++) {	
 				Integer y = i+1;
-				System.out.println("Decision " + y.toString() + ": "+"Location-> "+ dTree.get(i).getLocation().getLocationName() + ", item-> "+ dTree.get(i).getDecisionSelected());
+				System.out.println("Decision " + y.toString() +", Name: "+ dTree.get(i).getDecisionName()+ ", Location-> "+ dTree.get(i).getLocation().getLocationName() + ", item-> "+ dTree.get(i).getDecisionSelected());
 //				if(!dTree.get(i).getDecisionSelected().contentEquals("No item assigned")) {
 //					System.out.print("		Matched properties when this decision was made: ");
 //					for(String match: dTree.get(i).getMatches()) {System.out.print(" "+ match);}
@@ -171,9 +163,9 @@ public class CombinatorialTest
 	}
 
 	/*This is where I generate the decision tree */
-	public static ArrayList<decision> generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
+	public static ArrayList<ILDecision> generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
 		// This is the first pass through the tree, where I add mandatory assignments into a list
-		ArrayList<decision> decisionTree = new ArrayList<decision>();
+		ArrayList<ILDecision> decisionTree = new ArrayList<ILDecision>();
 		
 		ArrayList<Item> mandatoryAss = new ArrayList<Item>();
 		for (int i=0;i<locations.size();i++) {
@@ -189,11 +181,11 @@ public class CombinatorialTest
 		//		then it will be assigned somewhere and incremented to 2, and when the software goes to assign it to the mand ass
 		// 		location, it will do so and not increment assignment count (since I did it at the beginning).
 		for(Item item: mandatoryAss) {
-			AssignmentTracker.increaseCounts(item);
+			ItemAssignmentTracker.increaseCounts(item);
 		}
 		
     	for (int i=0; i<locations.size(); i++) {    		
-    		decision decision_choice = new decision(locations.get(i)); 		
+    		ILDecision decision_choice = new ILDecision(locations.get(i)); 		
     		ArrayList<Item> itemClone = new ArrayList<Item>(items);
     		decision_choice.setUnconstrainedChoices(itemClone);		
     		decision_choice.setDecisionSelection(items);		  		
@@ -201,10 +193,10 @@ public class CombinatorialTest
     	}
     	// This is the third pass thru the tree. Iterate through the tree, removing assigned items from all constrained choice lists
     	StringBuffer NA = new StringBuffer("null");
-    	for(decision choice: decisionTree) {
+    	for(ILDecision choice: decisionTree) {
     		if(!choice.getDecisionSelected().contentEquals(NA)) {
-    			for(decision eachDecision: decisionTree) {
-    				if(AssignmentTracker.atLimit(choice.getItemAssigned())) {
+    			for(ILDecision eachDecision: decisionTree) {
+    				if(ItemAssignmentTracker.atLimit(choice.getItemAssigned())) {
     					eachDecision.getConstrainedChoices().removeAll(Collections.singleton(choice.getItemAssigned()));
     				}
     			}
@@ -223,7 +215,7 @@ public class CombinatorialTest
        			}
        			decisionTree.get(i).setItemAssigned(item);
     			
-    			AssignmentTracker.increaseCounts(item);
+    			ItemAssignmentTracker.increaseCounts(item);
     			
     			// remove this assigned item from it's decision lists
     			decisionTree.get(i).getConstrainedChoices().removeAll(Collections.singleton(item));
@@ -233,7 +225,7 @@ public class CombinatorialTest
     			}
     			// Now remove the assigned item from the choice lists that follow
     			for(int j=i+1;j<decisionTree.size();j++) {
-    				if(AssignmentTracker.atLimit(item)){
+    				if(ItemAssignmentTracker.atLimit(item)){
     					decisionTree.get(j).getConstrainedChoices().removeAll(Collections.singleton(item));
     					decisionTree.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(item));
     				}
@@ -241,7 +233,7 @@ public class CombinatorialTest
     		}
     	}
     	// Next, go back and add the decided items back to their constrained lists if it's not already in them
-    	for(decision nextPass: decisionTree) {
+    	for(ILDecision nextPass: decisionTree) {
     		if(!nextPass.getConstrainedChoices().contains(nextPass.getItemAssigned())) {
     			nextPass.getConstrainedChoices().add(0,nextPass.getItemAssigned());
     		}
@@ -252,12 +244,12 @@ public class CombinatorialTest
     		}
     	}
     	// Finally, go back and check for locations with "No item assigned" and check to see if one item in the original list fit
-    	if(true) {
-    	for(decision finalPass: decisionTree) {
+    	
+    	for(ILDecision finalPass: decisionTree) {
     		//System.out.println("xxxx loc: "+finalPass.getLocation().getLocationName());
     		if(finalPass.getDecisionSelected().contentEquals(noItem)) {
     			//look in original location list to see if anything fits. If only one item can be assigned here, assign it and rebuild the list.
-    			itemsDuplicate = new ArrayList<Item>(AssignmentTracker.itemAssCount);
+    			itemsDuplicate = new ArrayList<Item>(ItemAssignmentTracker.itemAssCount);
     			//System.out.println("FOunD NO ITEM ASSIGNED. dupe size:"+itemsDuplicate.size());
     			finalPass.setConstrainedChoices(itemsDuplicate,00); // here it tries to build a list, it should ignore times assigned
     			
@@ -269,7 +261,7 @@ public class CombinatorialTest
     				
 	    			if(set.size()==1) {
 	    				Item singlet = finalPass.getConstrainedChoices().get(0);
-	    				AssignmentTracker.decreaseCounts(singlet);
+	    				ItemAssignmentTracker.decreaseCounts(singlet);
 //	    				System.out.println("LAST CHANCE TO ASSIGN "+singlet.getItemName()+" TO "+ finalPass.getLocation().getLocationName());
 	    				finalPass.getConstrainedChoices().clear();
 	    				//System.out.println("LINE 227 TRYING TO FIX NO ITEM ASSIGNED");
@@ -282,19 +274,19 @@ public class CombinatorialTest
     			}
     		}
     	}
-    	}
+    	
     	decisionTree = generateMediumConfidenceDecisionTree(decisionTree);
     	decisionTree = generateLowConfidenceDecisionTree(decisionTree);
     	return decisionTree;
 	}
 
 	/* Go through decisions and try to assign items that only partially fit to locations */
-	private static ArrayList<decision> generateMediumConfidenceDecisionTree(ArrayList<decision> decisionTree) {
-		ArrayList<decision> decisionNumber = new ArrayList<decision>(decisionTree);
+	private static ArrayList<ILDecision> generateMediumConfidenceDecisionTree(ArrayList<ILDecision> decisionTree) {
+		ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>(decisionTree);
 		//System.out.println("GENERATING MED CONF TREE");
 		Item item = decisionNumber.get(decisionNumber.size()-1).getItemAssigned();
 		ArrayList<Item> Unassigned = new ArrayList<Item>(decisionNumber.get(decisionNumber.size()-1).getUnconstrainedChoices());
-		if(AssignmentTracker.atLimit(item)){
+		if(ItemAssignmentTracker.atLimit(item)){
 			Unassigned.removeAll(Collections.singleton(item));
 		}
 		StringBuffer noItem = new StringBuffer("No item assigned");
@@ -306,7 +298,7 @@ public class CombinatorialTest
 				decisionNumber.get(i).getMediumConfidenceFit(Unassigned, locationCrit);
 				Item medItem = decisionNumber.get(i).getItemAssigned();
 				for(int j=i+1; j<decisionNumber.size();j++) {
-					if(AssignmentTracker.atLimit(medItem)){
+					if(ItemAssignmentTracker.atLimit(medItem)){
 						decisionNumber.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(medItem));
 					}
 				}
@@ -315,12 +307,12 @@ public class CombinatorialTest
 		return decisionNumber;
 	}
 	/* go through decisions and assign items that are leftover to open locations without checking criteria */
-	private static ArrayList<decision> generateLowConfidenceDecisionTree(ArrayList<decision> decisionTree) {
-		ArrayList<decision> decisionNumber = new ArrayList<decision>(decisionTree);
+	private static ArrayList<ILDecision> generateLowConfidenceDecisionTree(ArrayList<ILDecision> decisionTree) {
+		ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>(decisionTree);
 		//System.out.println("GENERATING LOW CONF TREE");
 		Item item = decisionNumber.get(decisionNumber.size()-1).getItemAssigned();
 		ArrayList<Item> Unassigned = new ArrayList<Item>(decisionNumber.get(decisionNumber.size()-1).getUnconstrainedChoices());
-		if(AssignmentTracker.atLimit(item)){
+		if(ItemAssignmentTracker.atLimit(item)){
 			Unassigned.removeAll(Collections.singleton(item));
 		}
 		StringBuffer noItem = new StringBuffer("No item assigned");
@@ -329,11 +321,11 @@ public class CombinatorialTest
 			if(decisionNumber.get(i).getItemAssigned().getItemName().contentEquals(noItem)) {
 				decisionNumber.get(i).getLowConfidenceFit(Unassigned);
 				Item medItem = decisionNumber.get(i).getItemAssigned();
-				if(AssignmentTracker.atLimit(medItem)){
+				if(ItemAssignmentTracker.atLimit(medItem)){
 					Unassigned.remove(medItem);
 				}
 				for(int j=i+1; j<decisionNumber.size();j++) {
-					if(AssignmentTracker.atLimit(medItem)){
+					if(ItemAssignmentTracker.atLimit(medItem)){
 						decisionNumber.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(medItem));
 					}
 				}
@@ -347,8 +339,8 @@ public class CombinatorialTest
 	/* THIS IS WHERE I CHANGE A DECISION AT A LOCATION */
 	/* change item assigned to this location to newItem */
 	/* arguments are ("where you want to put the new item", "the new item you want to insert", "complete location list")*/
-	public static ArrayList<decision> changeDecisionSelection(Location location, Item newItem, ArrayList<Location> locationList, ArrayList<decision> decisionTree) {
-		ArrayList<decision> decisionNumber = new ArrayList<decision>(decisionTree);
+	public static ArrayList<ILDecision> changeDecisionSelection(Location location, Item newItem, ArrayList<Location> locationList, ArrayList<ILDecision> decisionTree) {
+		ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>(decisionTree);
 		boolean meetsCriteria = true;
 		Integer locationIndex = null;
 		Item oldItem;
@@ -398,9 +390,9 @@ public class CombinatorialTest
 			    	System.out.println("^^^^^^you are at line 342. Unconstrained choices doesn't contain new item.\n");
 			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
 			    	
-			    	AssignmentTracker.itemAssCount.add(newItem);
+			    	ItemAssignmentTracker.itemAssCount.add(newItem);
 			    	// add new item and increase its assignment count by 1
-			    	AssignmentTracker.increaseCounts(newItem);
+			    	ItemAssignmentTracker.increaseCounts(newItem);
 					/*if(!newItem.getItemName().equals("null")||!newItem.getItemName().equals("No item assigned")){
 						Integer index = AssignmentTracker.itemAssCount.indexOf(newItem);
 						Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
@@ -421,21 +413,21 @@ public class CombinatorialTest
 		//			if it wasn't assigned earlier, then I change this decision
 		//				I assign the new item to this location
 			    	// decrease count of old item and then assign new Item and increase its count.
-			    	AssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned());
+			    	ItemAssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned());
 					
 					decisionNumber.get(locationIndex).setItemAssigned(newItem);
 
 		//					then I rebuild this decision list starting after this decision (making sure to remove the new item from the unconstrained list first)
-					if(AssignmentTracker.atLimit(newItem)) {
+					if(ItemAssignmentTracker.atLimit(newItem)) {
 						decisionNumber.get(locationIndex).getUnconstrainedChoices().remove(newItem);
 					}
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(locationIndex).getUnconstrainedChoices());
 					
 					for(int i = locationIndex+1; i<decisionNumber.size();i++) {
 						// I need to decrease each corresponding items assignment count by one in itemAssCount for each appearance in the rest of decisionNumber
-						AssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
+						ItemAssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
 					}
-					AssignmentTracker.increaseCounts(newItem);
+					ItemAssignmentTracker.increaseCounts(newItem);
 					
 					locationIndex = locationIndex + 1;
 					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(locationIndex, locationList.size()));
@@ -454,7 +446,7 @@ public class CombinatorialTest
 					manAss.add(newItem);
 					decisionNumber.get(locationIndex).getLocation().getMandatoryAssignments().addAll(0,manAss);
 					
-					AssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned()); // decrease count of currently assigned item
+					ItemAssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned()); // decrease count of currently assigned item
 					Integer earliestLocationIndex = findEarliestAssignment(decisionNumber, newItem);
 					//Integer earliestLocationIndex = findLastAssignment(decisionNumber, newItem);
 					
@@ -463,7 +455,7 @@ public class CombinatorialTest
 					
 					//System.out.println("I am changing "+location.getLocationName()+" to "+newItem.getItemName());
 					
-					AssignmentTracker.resetCount(oldItem);
+					ItemAssignmentTracker.resetCount(oldItem);
 					decisionNumber.get(earliestLocationIndex).setDecisionSelection(decisionNumber.get(earliestLocationIndex).getConstrainedChoices()/*, oldItem*/);
 					//decisionNumber.get(earliestLocationIndex).setItemAssigned(newItem);
 					
@@ -486,7 +478,7 @@ public class CombinatorialTest
 					
 					for(int i = earliestLocationIndex; i<decisionNumber.size();i++) {
 						// I need to decrease each corresponding items assignment count by one in itemAssCount for each appearance in the rest of decisionNumber
-						AssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
+						ItemAssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
 //						System.out.println("DECREASING COUNT FOR "+decisionNumber.get(i).getItemAssigned().getItemName()+" to " + AssignmentTracker.showCount(decisionNumber.get(i).getItemAssigned()));
 					}
 					
@@ -502,7 +494,7 @@ public class CombinatorialTest
 	}
 	
 	/* This methods finds the location index for earliest assignment of newItem */
-    private static Integer findEarliestAssignment(ArrayList<decision> decisionList, Item newItem) {
+    private static Integer findEarliestAssignment(ArrayList<ILDecision> decisionList, Item newItem) {
     	Integer Index = null;
     	for(int i=0; i<decisionList.size(); i++) {
     		if(decisionList.get(i).getItemAssigned().equals(newItem)) {
@@ -546,80 +538,4 @@ public class CombinatorialTest
 //			return false;
 //	}
 
-	/*
-     * The follow two methods read items and locations from a file and return their respective array lists.
-     * These were created with simple lists in mind and only assign "name" attributes to their objects.
-     */
-    public static ArrayList<Item> readItemFile(String filename) throws Exception, FileNotFoundException, IOException {
-		FileReader fr = new FileReader(filename);
-        BufferedReader textReader = new BufferedReader(fr);
-        ArrayList<Item> itemsFromFile = new ArrayList<Item>();
-        ArrayList<Item> itemsWithNA = new ArrayList<Item>();
-        
-        int counter = 0;
-        while (textReader.ready()) {
-        	String[] line = textReader.readLine().split(","); // for each line read, add 1 to counter.
-            Item item = new Item(line[0]);
-            item.setAssignmentLimit(Integer.parseInt(line[1]));
-            item.setItemProperties(line);
-            itemsFromFile.add(item);
-            counter++;
-        }
-        textReader.close();
-        if(counter <= 0)
-                throw new Exception("Error. "+filename+" is empty."); // if no lines read, throw empty file exception
-        
-        /* Sort items from most to least constrained according to length of their properties (aka requirements) */
-        StringBuffer NA = new StringBuffer("[NA]");
-        if(!itemsFromFile.isEmpty()) {
-	        for(Item item: itemsFromFile) {
-	        	if(!item.getItemProperties().isEmpty()/*.get(1) != null*/){
-		        	if(item.getItemProperties().get(1).contentEquals(NA)) {
-		        		itemsWithNA.add(item);
-		        	}
-	        	}
-	        }
-        itemsFromFile.removeAll(itemsWithNA);
-        Collections.sort(itemsFromFile, Item.PropComparator);
-        itemsFromFile.addAll(itemsWithNA);
-        }
-        return itemsFromFile;
-    }
-    
-    public static ArrayList<Location> readLocationFile(String filename) throws Exception, FileNotFoundException, IOException {
-		FileReader fr = new FileReader(filename);
-        BufferedReader textReader = new BufferedReader(fr);
-        ArrayList<Location> locationsFromFile = new ArrayList<Location>();
-        ArrayList<Location> locationsWithNA = new ArrayList<Location>();
-        
-        
-        int counter = 0;
-        while (textReader.ready()) {
-        	String[] line = textReader.readLine().split(","); // for each line read, add 1 to counter.
-            Location location = new Location(line[0]); // this is a simple location list, with no constraints
-            location.setLocationCriteria(line);
-            locationsFromFile.add(location);
-            counter++;
-        }
-        textReader.close();
-        if(counter <= 0)
-                throw new Exception("Error. "+filename+" is empty."); // if no lines read, throw empty file exception
-        
-        /* Sort locations from most to least constrained according to length of their criteria (aka requirements) */
-        /* Sort items from most to least constrained according to length of their properties (aka requirements) */
-        StringBuffer NA = new StringBuffer("[NA]");
-        if(!locationsFromFile.isEmpty()) {
-	        for(Location location: locationsFromFile) {
-	        	if(!location.getLocationCriteria().isEmpty()/*.get(1) != null*/){
-		        	if(location.getLocationCriteria().get(1).contentEquals(NA)) {
-		        		locationsWithNA.add(location);
-		        	}
-	        	}
-	        }
-	    locationsFromFile.removeAll(locationsWithNA);
-        Collections.sort(locationsFromFile, Location.critComparator);
-        locationsFromFile.addAll(locationsWithNA);
-        }
-        return locationsFromFile;
-    }
 } 

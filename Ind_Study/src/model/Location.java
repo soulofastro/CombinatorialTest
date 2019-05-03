@@ -12,8 +12,9 @@ public class Location implements Comparable{
 										// better way. This is where I will store
 										// "class requirements" and/or time slot requirements
 	private ArrayList<Item> mandatoryAssignments = new ArrayList<Item>();
+	private ArrayList<ILDecision> mandatoryDecisionAssignments = new ArrayList<ILDecision>();
 	private Integer numberOfConstraints = 0;
-	private Integer assignmentLimit = 1; // The limit on how many times this item can be assigned
+	private Integer locationAssignmentLimit = 1; // The limit on how many times this item can be assigned
 	private Integer numberOfTimesAssigned = 0; // The number of times this item has been assigned to a location
 	
 	/* constructors */
@@ -53,6 +54,7 @@ public class Location implements Comparable{
 		set.clear();
 		
 		this.locationCriteria = tempProps;
+		this.locationCriteria.remove(1);
 		
 		String[] line;
 		/* go through the location's criteria and count the number of constraints */
@@ -212,16 +214,22 @@ public class Location implements Comparable{
 		return result;
 	}
 	public Integer getAssignmentLimit() {
-		return assignmentLimit;
+		return locationAssignmentLimit;
 	}
 	public void setAssignmentLimit(Integer assignmentLimit) {
-		this.assignmentLimit = assignmentLimit;
+		this.locationAssignmentLimit = assignmentLimit;
 	}
 	public Integer getNumberOfTimesAssigned() {
 		return numberOfTimesAssigned;
 	}
 	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
 		this.numberOfTimesAssigned = numberOfTimesAssigned;
+	}
+	public ArrayList<ILDecision> getMandatoryDecisionAssignments() {
+		return mandatoryDecisionAssignments;
+	}
+	public void setMandatoryDecisionAssignments(ArrayList<ILDecision> mandatoryDecisionAssignments) {
+		this.mandatoryDecisionAssignments = mandatoryDecisionAssignments;
 	}
 
 }

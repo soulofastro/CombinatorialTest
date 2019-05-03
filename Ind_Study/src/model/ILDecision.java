@@ -8,43 +8,51 @@ import java.util.Map.Entry;
 import java.util.Set;
 //import java.util.LinkedHashSet;
 
-public class decision {
+public class ILDecision {
 
 	private ArrayList<Item> unconstrainedChoices;
 	private ArrayList<Item> constrainedChoices; 
 	private ArrayList<String> ItemLocationMatches = new ArrayList<String>();
 	private Item itemAssigned;
 	private Location location;
+	private String decisionName;
+	private Integer assignmentLimit = 1; // The limit on how many times this decision can be assigned
+	private Integer numberOfTimesAssigned = 0; // The number of times this decision has been assigned to a location
 	
 	/* Given a location, select an item from a list */
-	public decision(Location location) {
+	public ILDecision(Location location) {
 		setLocation(location);
 	}
 	
-	public ArrayList<String> getMatches(){	
-		ArrayList<String> temp = new ArrayList<String>(itemAssigned.getItemProperties());
-		temp.addAll(location.getLocationCriteria());
-		
-		HashMap<String,Integer> elementCountMap = new HashMap<String,Integer>();
-		
-		for(String i: temp) {
-			if(elementCountMap.containsKey(i))
-				elementCountMap.put(i, elementCountMap.get(i)+1);
-			else
-				elementCountMap.put(i, 1);
-		}
-		int frequency = 1;
-		
-		Set<Entry<String, Integer>> entrySet = elementCountMap.entrySet();
-		
-		for (Entry<String, Integer> entry: entrySet) {
-			if(entry.getValue() > frequency) {
-				ItemLocationMatches.add(entry.getKey());
-			}
-		}
-		ArrayList<String> matches = new ArrayList<String>(ItemLocationMatches);
-		return matches;
+	public ILDecision(String string) {
+		setDecisionName(string);
 	}
+
+	public ArrayList<String> getMatches(){	
+			ArrayList<String> temp = new ArrayList<String>(itemAssigned.getItemProperties());
+			temp.addAll(location.getLocationCriteria());
+			
+			HashMap<String,Integer> elementCountMap = new HashMap<String,Integer>();
+			
+			for(String i: temp) {
+				if(elementCountMap.containsKey(i))
+					elementCountMap.put(i, elementCountMap.get(i)+1);
+				else
+					elementCountMap.put(i, 1);
+			}
+			int frequency = 1;
+			
+			Set<Entry<String, Integer>> entrySet = elementCountMap.entrySet();
+			
+			for (Entry<String, Integer> entry: entrySet) {
+				if(entry.getValue() > frequency) {
+					ItemLocationMatches.add(entry.getKey());
+				}
+			}
+			ArrayList<String> matches = new ArrayList<String>(ItemLocationMatches);
+			return matches;
+	}
+	
 
 	/* THIS IS WHERE I ASSIGN AN ITEM TO A LOCATION */
 	public void setDecisionSelection(ArrayList<Item> unconChoices) {
@@ -59,7 +67,7 @@ public class decision {
 			if(location.getMandatoryAssignments().size() > 0) {
 //				System.out.println("I FOUND A MANDATORY ASSIGNMENT AT LINE 60. ITEM: "+location.getMandatoryAssignments().get(0).getItemName());
 				item = location.getMandatoryAssignments().get(0);/*top manAss*/
-				AssignmentTracker.decreaseCounts(item); 
+				ItemAssignmentTracker.decreaseCounts(item); 
 				//decrease item count here because I increased it artificially earlier
 				//this counteracts the next count increase below
 			}
@@ -71,10 +79,10 @@ public class decision {
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
-			AssignmentTracker.increaseCounts(item);
+			ItemAssignmentTracker.increaseCounts(item);
 			
 			// Remove item selected from unconstrained list
-			if(AssignmentTracker.atLimit(item)) {
+			if(ItemAssignmentTracker.atLimit(item)) {
 				unconChoices.remove(item);
 			}
 		}
@@ -97,7 +105,7 @@ public class decision {
 			if(location.getMandatoryAssignments().size() > 0) {
 				System.out.println("I FOUND A MANDATORY ASSIGNMENT AT LINE 98");
 				item = location.getMandatoryAssignments().get(0);/*top manAss*/
-				AssignmentTracker.decreaseCounts(item); 
+				ItemAssignmentTracker.decreaseCounts(item); 
 				//decrease item count here because I increased it artificially earlier
 				//this counteracts the next count increase below
 			}
@@ -109,10 +117,10 @@ public class decision {
 			
 			//this updates how many times an item is assigned
 			//System.out.println("ITEM: "+ item.getItemName()+ ", INDEX Of ASSIGNED ITEM: " + CombinatorialTest.itemAssCount.indexOf(item));
-			AssignmentTracker.increaseCounts(item);
+			ItemAssignmentTracker.increaseCounts(item);
 			
 			// Remove item selected from unconstrained list
-			if(AssignmentTracker.atLimit(item)) {
+			if(ItemAssignmentTracker.atLimit(item)) {
 				unconChoices.remove(item);
 			}
 		}
@@ -145,7 +153,7 @@ public class decision {
 				frequency = entry.getValue();
 				// thought: if I see another entry with the same value, set my element back to null
 			}
-			else if(entry.getValue() == frequency) { //TODO tag in case this messes everything up
+			else if(entry.getValue() == frequency) {
 				element = new Item();
 			}
 		}
@@ -193,7 +201,7 @@ public class decision {
 				frequency = entry.getValue();
 				// thought: if I see another entry with the same value, set my element back to null
 			}
-			else if(entry.getValue() == frequency) { //TODO tag in case this messes everything up
+			else if(entry.getValue() == frequency) { 
 				element = new Item();
 			}
 		}
@@ -236,7 +244,14 @@ public class decision {
 	}
 
 	public void setItemAssigned(Item item) {
+//		System.out.println("ASSIGNING ITEM "+ item.getItemName());
 		this.itemAssigned = item;
+		this.setDecisionName(this.location.getLocationName()+"_"+item.getItemName());
+		if(!item.equals(new Item("No item assigned"))) {
+			if(!item.equals(new Item("null"))){
+				getMatches();
+			}
+		}
 	}
 
 	public Location getLocation() {
@@ -245,6 +260,14 @@ public class decision {
 
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+
+	public String getDecisionName() {
+		return decisionName;
+	}
+
+	public void setDecisionName(String decisionName) {
+		this.decisionName = decisionName;
 	}
 
 	public ArrayList<Item> getConstrainedChoices() {
@@ -266,14 +289,14 @@ public class decision {
 			for(int j=0; j < conChoice.get(i).getItemProperties().size(); j++) {
 				//System.out.println("Checking to see if "+conChoice.get(i).getItemName()+" matches anything in " +this.location.getLocationName());
 				for(int k=0; k < this.location.getLocationCriteria().size(); k++) {
-					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k)) && AssignmentTracker.checkCount(conChoice.get(i))) {
+					if(conChoice.get(i).getItemProperties().get(j).equals(this.location.getLocationCriteria().get(k)) && ItemAssignmentTracker.checkCount(conChoice.get(i))) {
 						//System.out.println("item-> "+conChoice.get(i).getItemName()+", conChoice-> "+conChoice.get(i).getItemProperties().get(j)+"--"+this.location.getLocationCriteria().get(k)+" <-LocCriteria, "+this.location.getLocationName()+" <-Location");
 						newList.add(conChoice.get(i));
 					}
-					else if(arrayCompare(conChoice.get(i).getItemProperties().get(j),this.location.getLocationCriteria().get(k)) && AssignmentTracker.checkCount(conChoice.get(i))){
+					else if(arrayCompare(conChoice.get(i).getItemProperties().get(j),this.location.getLocationCriteria().get(k)) && ItemAssignmentTracker.checkCount(conChoice.get(i))){
 						newList.add(conChoice.get(i));
 					}
-					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]") && AssignmentTracker.checkCount(conChoice.get(i))) {
+					else if(conChoice.get(i).getItemProperties().get(j).equals("[NA]") && ItemAssignmentTracker.checkCount(conChoice.get(i))) {
 						if(!newList.contains(conChoice.get(i)))
 							newList.add(conChoice.get(i));
 					}
@@ -290,7 +313,6 @@ public class decision {
 	
 	// this overload ignores the count requirement
 	public void setConstrainedChoices(ArrayList<Item> itemsDuplicate, int doesntmatter) {
-		
 		ArrayList<Item> conChoice = new ArrayList<Item>(itemsDuplicate);
 		ArrayList<Item> newList = new ArrayList<Item>();
 		
@@ -328,6 +350,30 @@ public class decision {
 		this.constrainedChoices = newList;
 	}
 	
+	public void setItemLocationMatches(){
+		getMatches();
+	}
+	
+	public ArrayList<String> getItemLocationMatches(){
+		return ItemLocationMatches;
+	}
+	
+	public Integer getAssignmentLimit() {
+		return assignmentLimit;
+	}
+
+	public void setAssignmentLimit(Integer assignmentLimit) {
+		this.assignmentLimit = assignmentLimit;
+	}
+
+	public Integer getNumberOfTimesAssigned() {
+		return numberOfTimesAssigned;
+	}
+
+	public void setNumberOfTimesAssigned(Integer numberOfTimesAssigned) {
+		this.numberOfTimesAssigned = numberOfTimesAssigned;
+	}
+
 	private boolean arrayCompare(String propString, String critString) {
 		String[] prop = propString.split("&");
 		String[] crit = critString.split("&");
@@ -382,18 +428,18 @@ public class decision {
 		
 		if(this.constrainedChoices.size()>1 && !newItem.getItemName().contentEquals("null")) {
 //			System.out.println("line376 setItem to newItem "+ newItem.getItemName()+"\n");
-			if(AssignmentTracker.checkCount(newItem)) {
+			if(ItemAssignmentTracker.checkCount(newItem)) {
 				setItemAssigned(newItem);
-				AssignmentTracker.increaseCounts(newItem);
+				ItemAssignmentTracker.increaseCounts(newItem);
 			}
 			//unconstrainedChoices.remove(newItem);
 		}
 		else if(this.constrainedChoices.size()>0) {
-			if(AssignmentTracker.checkCount(this.constrainedChoices.get(this.constrainedChoices.size()-1))) {
+			if(ItemAssignmentTracker.checkCount(this.constrainedChoices.get(this.constrainedChoices.size()-1))) {
 				newItem = this.constrainedChoices.get(this.constrainedChoices.size()-1);
 //				System.out.println("line384 setItem to newItem "+ newItem.getItemName()+"\n");
 				setItemAssigned(newItem);
-				AssignmentTracker.increaseCounts(this.constrainedChoices.get(this.constrainedChoices.size()-1));
+				ItemAssignmentTracker.increaseCounts(this.constrainedChoices.get(this.constrainedChoices.size()-1));
 			}
 			//unconstrainedChoices.remove(constrainedChoices.get(0));
 		}
@@ -406,11 +452,11 @@ public class decision {
 	}
 	
 	public void getLowConfidenceFit(ArrayList<Item> unassigned) {
-		if(unassigned.size()>0 && AssignmentTracker.checkCount(unassigned.get(0))) {
+		if(unassigned.size()>0 && ItemAssignmentTracker.checkCount(unassigned.get(0))) {
 			setItemAssigned(unassigned.get(0));	
 		
 		//for(Item item: unassigned)
-			AssignmentTracker.increaseCounts(unassigned.get(0));
+			ItemAssignmentTracker.increaseCounts(unassigned.get(0));
 			/*if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
 				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
 				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
@@ -441,5 +487,23 @@ public class decision {
     		System.out.println("Mandatory assignment Item: "+ getLocation().getMandatoryAssignments().get(j).getItemName());
     	}
 		
+	}
+	
+	@Override 
+	public boolean equals(Object other){
+		if(this == other) {return true;}
+		if(other == null) {return false;}
+		if(getClass() != other.getClass()) {return false;}
+		if(!this.getDecisionName().contentEquals(((ILDecision) other).getDecisionName())) {
+			return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result =0;
+		result = 5 * decisionName.length();
+		return result;
 	}
 }

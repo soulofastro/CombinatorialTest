@@ -20,12 +20,13 @@ package control;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import model.CombinatorialTest;
+import model.CurrentState;
 
 public class Main {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, Exception {
-		CombinatorialTest.run();
+		CurrentState m = new CurrentState("Isimple.txt","Lsimple.txt","Tsimple.txt"); // for simple testing
+		/* other constructor for current state is CurrentState(itemFileName, locationFileName, timeSlotsFileName) */
 	}
 
 }
