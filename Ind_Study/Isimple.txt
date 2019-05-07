@@ -1,3 +1,5 @@
 Alpha,2,[C1]
 Beta,2,[C2]
 Charlie,1,[C3]
+Delta,1,[C4]
+Echo,1,[C5]

@@ -2,12 +2,10 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
-//import java.util.LinkedHashSet;
 
 public class ILDecision {
 
@@ -55,7 +53,7 @@ public class ILDecision {
 			ArrayList<String> matches = new ArrayList<String>(ItemLocationMatches);
 			return matches;
 	}
-	public ArrayList<String> getPartialMatches(){	
+	public void getPartialMatches(){	
 		ArrayList<String> temp = new ArrayList<String>();
 		for(String itemProp: itemAssigned.getItemProperties()) {
 			String[] tempIP = itemProp.split("&");
@@ -69,7 +67,9 @@ public class ILDecision {
 				temp.add(tempLC[i]);
 			}
 		}
-		
+//		for(String thing: temp) {
+//			System.out.println("PARTIAL MATCHES "+ this.getDecisionName()+" " + thing);
+//		}
 		
 		HashMap<String,Integer> elementCountMap = new HashMap<String,Integer>();
 		
@@ -85,12 +85,13 @@ public class ILDecision {
 		
 		for (Entry<String, Integer> entry: entrySet) {
 			if(entry.getValue() > frequency) {
-				ItemLocationPartialMatches.add(entry.getKey());
+				getItemLocationPartialMatches().add(entry.getKey());
+//				System.out.println("LINE 89 ILD "+ getDecisionName() + " ADDInG " + entry.getKey() );
 			}
 		}
-		ArrayList<String> matches = new ArrayList<String>(ItemLocationPartialMatches);
-		return matches;
-}
+//		ArrayList<String> matches = new ArrayList<String>(ItemLocationPartialMatches);
+//		return matches;
+	}
 	
 
 	/* THIS IS WHERE I ASSIGN AN ITEM TO A LOCATION */
@@ -284,11 +285,17 @@ public class ILDecision {
 
 	public void setItemAssigned(Item item) {
 //		System.out.println("ASSIGNING ITEM "+ item.getItemName());
-		this.itemAssigned = item;
-		this.setDecisionName(this.location.getLocationName()+"_"+item.getItemName());
+//		if(item.getNumberOfTimesAssigned() <= item.getAssignmentLimit())
+			this.itemAssigned = item;
+//		else{
+//			this.itemAssigned = new Item("No item assigned");
+//		}
+		
 		if(!item.equals(new Item("No item assigned"))) {
 			if(!item.equals(new Item("null"))){
+				this.setDecisionName(this.location.getLocationName()+"_"+item.getItemName());
 				getMatches();
+				getPartialMatches();
 			}
 		}
 	}
@@ -494,14 +501,7 @@ public class ILDecision {
 		if(unassigned.size()>0 && ItemAssignmentTracker.checkCount(unassigned.get(0))) {
 			setItemAssigned(unassigned.get(0));	
 		
-		//for(Item item: unassigned)
 			ItemAssignmentTracker.increaseCounts(unassigned.get(0));
-			/*if(!item.getItemName().equals("null")||!item.getItemName().equals("No item assigned")){
-				Integer index = AssignmentTracker.itemAssCount.indexOf(item);
-				Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
-				count += 1;
-				AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(item)).setNumberOfTimesAssigned(count);
-			}*/
 		}
 	}
 	
@@ -546,7 +546,7 @@ public class ILDecision {
 		return result;
 	}
 
-	public Collection<? extends String> getItemLocationPartialMatches() {
+	public ArrayList<String> getItemLocationPartialMatches() {
 		return ItemLocationPartialMatches;
 	}
 
@@ -564,5 +564,10 @@ public class ILDecision {
     		System.out.println("partial fit Item Name: "+ partialFitChoices.get(j).getItemName());
     	}
 		
+	}
+
+	public Integer getNumberOfConstraints() {
+		Integer size = getItemLocationMatches().size()+getItemLocationPartialMatches().size();
+		return size;
 	}
 }

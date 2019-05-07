@@ -49,7 +49,7 @@ public class DLDecision {
 				}
 				DecisionAssignmentTracker.decreaseCounts(ilDecisions); 
 			}
-			ilDecisions.addAll(getBestFits()); //TODO Marker
+			ilDecisions.addAll(getBestFits());
 			setDecisionsAssigned(ilDecisions);
 			
 			//this updates how many times the decisions are assigned
@@ -110,8 +110,7 @@ public class DLDecision {
 	       // Defined Custom Comparator here
 	       Collections.sort(list, new Comparator() {
 	            public int compare(Object o1, Object o2) {
-	               return ((Comparable) ((Map.Entry) (o2)).getValue())
-	                  .compareTo(((Map.Entry) (o1)).getValue());
+	               return ((Comparable) ((Map.Entry) (o2)).getValue()).compareTo(((Map.Entry) (o1)).getValue());
 	            }
 	       });
 
@@ -313,14 +312,12 @@ public class DLDecision {
 	}
 
 	public void getMediumConfidenceFit(ArrayList<ILDecision> lastNodeUnconstrainedList, ArrayList<String> locationCriteria) {
-		// TODO Auto-generated method stub
 		// item -> ILDecision
 //		System.out.println("GETTING MEDIUM CONFIDENCE FIT ");
 		
 		for(ILDecision decision: lastNodeUnconstrainedList) {
-//			decision.getPartialMatches();
 			
-			ArrayList<String> decisionProperties= new ArrayList<String>(decision.getPartialMatches());
+			ArrayList<String> decisionProperties= new ArrayList<String>(decision.getItemLocationPartialMatches());
 			for(String propString: decisionProperties) {
 				String[] separatedProps = propString.split("&");
 				for(String critString: locationCriteria) {
@@ -402,6 +399,31 @@ public class DLDecision {
 		}
 		this.setPartialFitChoices(new ArrayList<ILDecision>(getConstrainedChoices()));
 		this.constrainedChoices.clear();
+	}
+	
+	public void getLowConfidenceFit(ArrayList<ILDecision> unassigned) {
+		// assign decisions in unconstrained list up to limit
+		ArrayList<ILDecision> temp = new ArrayList<ILDecision>();
+		ArrayList<Item> seen = new ArrayList<Item>();
+		
+		for(ILDecision dec: unassigned) {
+			if(DecisionAssignmentTracker.checkCount(dec) && !seen.contains(dec.getItemAssigned())) { //if limit not reached and item not seen before, add to temp list
+				temp.add(dec);
+				seen.add(dec.getItemAssigned());
+			}
+		}
+		ILDecision dec1 = new ILDecision("No decision assigned");
+		ILDecision dec2 = new ILDecision("null");
+		temp.remove(dec1);
+		temp.remove(dec2); // remove empty decisions from temp
+		if(temp.size() > this.getAssignmentLimit()) {
+			ArrayList<ILDecision> cut = new ArrayList<ILDecision>(temp.subList(0, this.getAssignmentLimit()));
+			setDecisionsAssigned(cut);
+		}
+		else {
+			setDecisionsAssigned(temp);
+		}
+		DecisionAssignmentTracker.increaseCounts(temp);
 	}
 
 	public ArrayList<ILDecision> getPartialFitChoices() {

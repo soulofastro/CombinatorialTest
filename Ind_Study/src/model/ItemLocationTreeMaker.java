@@ -49,8 +49,8 @@ public class ItemLocationTreeMaker
     	decisionNumber = generateDecisionTree(locations, itemClone);
     	
     	/* Display Locations and item assigned to each location */
-    	printDecisionTree(decisionNumber);
-//    	printPlainDecisionTree(decisionNumber);
+//    	printDecisionTree(decisionNumber);
+    	printPlainDecisionTree(decisionNumber);
 
     	
     	/* Change a decision and display updated list */
@@ -85,7 +85,7 @@ public class ItemLocationTreeMaker
 //    	System.out.println("\nList after test case change:\n");
 //    	printDecisionTree(decisionNumber);
     	
-
+    	System.out.println();
     	for (Item item : items) {
     		System.out.println("Item Name: "+ item.getItemProperties().get(0)+", Times assigned: "+item.getNumberOfTimesAssigned()+" of "+item.getAssignmentLimit());
     	}
@@ -157,7 +157,7 @@ public class ItemLocationTreeMaker
 //					for(String match: dTree.get(i).getMatches()) {System.out.print(" "+ match);}
 //					System.out.println();
 //				}	
-			System.out.println();
+//			System.out.println();
 			}
     	}
     	catch(Exception e) {
@@ -168,6 +168,7 @@ public class ItemLocationTreeMaker
 	}
 
 	/*This is where I generate the decision tree */
+	@SuppressWarnings("unused")
 	public static ArrayList<ILDecision> generateDecisionTree(ArrayList<Location> locations, ArrayList<Item> items) {
 		// This is the first pass through the tree, where I add mandatory assignments into a list
 		ArrayList<ILDecision> decisionTree = new ArrayList<ILDecision>();
@@ -248,8 +249,10 @@ public class ItemLocationTreeMaker
     				Collections.sort(finalPass.getUnconstrainedChoices(), Item.PropComparator); */
     		}
     	}
-    	// Finally, go back and check for locations with "No item assigned" and check to see if one item in the original list fit
     	
+    	// Finally, go back and check for locations with "No item assigned" and check to see if one item in the original list fit
+    	// probably not necessary, dead code for now 
+    	if(false) {
     	for(ILDecision finalPass: decisionTree) {
     		//System.out.println("xxxx loc: "+finalPass.getLocation().getLocationName());
     		if(finalPass.getDecisionSelected().contentEquals(noItem)) {
@@ -278,6 +281,7 @@ public class ItemLocationTreeMaker
 	    			}
     			}
     		}
+    	}
     	}
     	
     	decisionTree = generateMediumConfidenceDecisionTree(decisionTree);
@@ -357,6 +361,7 @@ public class ItemLocationTreeMaker
 				break;
 			}
 		}
+//		BYPASS CRITERIA CHECK COMPLETELY (for now?) this should avoid frustration later on
 		
 //		for(int i=0; i<decisionNumber.size(); i++) {
 //			if(decisionNumber.get(i).getLocation().equals(location)) {
@@ -424,7 +429,9 @@ public class ItemLocationTreeMaker
 
 		//					then I rebuild this decision list starting after this decision (making sure to remove the new item from the unconstrained list first)
 					if(ItemAssignmentTracker.atLimit(newItem)) {
-						decisionNumber.get(locationIndex).getUnconstrainedChoices().remove(newItem);
+						for(int i = locationIndex; i< decisionNumber.size(); i++) {
+							decisionNumber.get(i).getUnconstrainedChoices().remove(newItem);
+						}
 					}
 					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(locationIndex).getUnconstrainedChoices());
 					
@@ -438,8 +445,9 @@ public class ItemLocationTreeMaker
 					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(locationIndex, locationList.size()));
 					decisionNumber.subList(locationIndex, decisionNumber.size()).clear();
 					
-					System.out.println("CLEAR PARTIAL LIST FROM "+locationIndex+" TO "+decisionNumber.size());
-					printPlainDecisionTree(decisionNumber);
+//					System.out.println("CLEAR PARTIAL LIST FROM "+locationIndex+" TO "+decisionNumber.size());
+					//TODO why is this todo here?
+//					printPlainDecisionTree(decisionNumber);
 					
 					decisionNumber.addAll(generateDecisionTree(newLocationList,newItemList));
 					return decisionNumber;

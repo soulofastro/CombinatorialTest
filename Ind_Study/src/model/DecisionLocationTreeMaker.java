@@ -17,16 +17,22 @@ public class DecisionLocationTreeMaker {
 		DecisionAssignmentTracker.add(new ILDecision("null"));
 		DecisionAssignmentTracker.add(new ILDecision("No decision assigned"));
 		
+		printILDecisionList(ILtree);
+		
 		printLocationList(timeSlots);
 		
 		DLtree = generateDecisionTree(timeSlots, ILtreeClone);
 		
-		printDecisionTree(DLtree);
-//		printPlainDecisionTree(DLtree);
+//		printDecisionTree(DLtree);
+		printPlainDecisionTree(DLtree);
 		
-		// change decision testing goes here
+		/*
+		 *  change decision testing goes here
+		 * 
+		 * 
+		 */
 		
-		
+		System.out.println();
 		for (ILDecision ILD : ILtree) {
     		System.out.println("ILD Name: "+ ILD.getDecisionName()+", Times assigned: "+ILD.getNumberOfTimesAssigned()+" of "+ILD.getAssignmentLimit());
     	}
@@ -80,6 +86,23 @@ public class DecisionLocationTreeMaker {
     		// Location runs into null assignment
     		System.out.println("Assignment error. Too many or incompatible constraints likely.");
     	}
+		
+	}
+	
+	private static void printILDecisionList(ArrayList<ILDecision> decisions) {
+    	for (ILDecision decision: decisions) {
+    		System.out.print("Decision name: "+ decision.getDecisionName()+", Constraints:->");
+    		for (int i=0; i<decision.getItemLocationMatches().size();i++) {
+    			System.out.print(" "+ decision.getItemLocationMatches().get(i));
+    		}
+    		System.out.print(", Partial Constraints:->");
+    		for (int i=0; i<decision.getItemLocationPartialMatches().size();i++) {
+    			System.out.print(" "+ decision.getItemLocationPartialMatches().get(i));
+    		}
+    		System.out.print(" <-|| Number of Constraints: "+ decision.getNumberOfConstraints()/*decision.getItemLocationMatches().size()+decision.getItemLocationPartialMatches().size()*/);
+    		System.out.println();
+    	}
+    	System.out.println();
 		
 	}
 	
@@ -216,7 +239,7 @@ public class DecisionLocationTreeMaker {
        	
        	
     	decisionTree = generateMediumConfidenceDecisionTree(decisionTree);
-//    	decisionTree = generateLowConfidenceDecisionTree(decisionTree);
+    	decisionTree = generateLowConfidenceDecisionTree(decisionTree);
 		return decisionTree;
 	}
 
@@ -234,7 +257,13 @@ public class DecisionLocationTreeMaker {
 		for(int i=0; i<decisions.size(); i++) {
 			if(decisions.get(i).getDecisionsAssigned().contains(new ILDecision("No decision assigned"))) {
 				ArrayList<String> locationCrit = new ArrayList<String>(decisions.get(i).getLocation().getLocationCriteria());
+				
 				decisions.get(i).getMediumConfidenceFit(lastNodeUnconstrainedList, locationCrit);
+				
+				for(int z = 0; i< decisions.get(i).getDecisionsAssigned().size();z++) {
+					System.out.println("MED DECISION "+ decisions.get(i).getDecisionName() +" ASSIGNING(258): " + decisions.get(i).getDecisionsAssigned().get(z));
+				}
+				
 				ArrayList<ILDecision> decisionAssignd = new ArrayList<ILDecision>(decisions.get(i).getDecisionsAssigned());
 				for(int j=i+1; j<decisions.size();j++) {
 					for(ILDecision dec: decisionAssignd) {
@@ -251,8 +280,31 @@ public class DecisionLocationTreeMaker {
 	
 	
 	private static ArrayList<DLDecision> generateLowConfidenceDecisionTree(ArrayList<DLDecision> decisionTree){
-		//TODO
-		return null;
+		ArrayList<DLDecision> decisions = new ArrayList<DLDecision>(decisionTree);
+		ArrayList<ILDecision> lastNodeAssignments = new ArrayList<ILDecision>(decisions.get(decisions.size()-1).getDecisionsAssigned());
+		ArrayList<ILDecision> lastNodeUnconstrainedList = new ArrayList<ILDecision>(decisions.get(decisions.size()-1).getUnconstrainedChoices());
+		
+		for(ILDecision lastNode: lastNodeAssignments) {
+			if(DecisionAssignmentTracker.atLimit(lastNode)) {
+				lastNodeUnconstrainedList.removeAll(Collections.singleton(lastNode));
+			}
+		}
+		
+		for(int i=0; i<decisions.size(); i++) {
+			if(decisions.get(i).getDecisionsAssigned().contains(new ILDecision("No decision assigned"))) {
+				decisions.get(i).getLowConfidenceFit(lastNodeUnconstrainedList);
+				ArrayList<ILDecision> decisionAssignd = new ArrayList<ILDecision>(decisions.get(i).getDecisionsAssigned());
+				for(int j=i+1; j<decisions.size();j++) {
+					for(ILDecision dec: decisionAssignd) {
+						if(DecisionAssignmentTracker.atLimit(dec)){
+							decisions.get(j).getUnconstrainedChoices().removeAll(Collections.singleton(dec));
+						}
+					}
+				}
+			}
+		}
+		
+		return decisions;
 	}
 	
 	public static ArrayList<ILDecision> changeDecisionSelection(Location location, Item newItem, ArrayList<Location> locationList, ArrayList<ILDecision> decisionTree) {
