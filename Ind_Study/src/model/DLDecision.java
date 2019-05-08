@@ -22,12 +22,13 @@ public class DLDecision {
 	private ArrayList<ILDecision> decisionsAssigned;
 	private Location location;
 	private String decisionName;
-	private Integer assignmentLimit = 0; // The limit on how many decisions can be assigned to location
+	private Integer assignmentLimit = 0; // The limit on how many decisions can be assigned to location. Limited by location.
 	private Integer numberOfAssignedDecisions = 0; // The number of times this decision has been assigned to a location
 
 	public DLDecision(Location location) {
 		setLocation(location);
 		setAssignmentLimit(location.getAssignmentLimit());
+		setDecisionName(location.getLocationName()+" ");
 	}
 
 	public void setDecisionSelection(ArrayList<ILDecision> unconChoices) {
@@ -266,6 +267,14 @@ public class DLDecision {
 	}
 
 	public void setDecisionsAssigned(ArrayList<ILDecision> decisionsAssigned) {
+		for(ILDecision dec: decisionsAssigned) {
+			if(!dec.equals(new ILDecision("No decision assigned"))) {
+				if(!dec.equals(new ILDecision("null"))){
+//					System.out.println("ASSIGNING: "+dec.getDecisionName()+" TO "+ getDecisionName());
+					this.numberOfAssignedDecisions = getNumberOfAssignedDecisions() + 1;//TODO
+				}
+			}
+		}
 		this.decisionsAssigned = decisionsAssigned;
 	}
 	
@@ -419,6 +428,11 @@ public class DLDecision {
 		if(temp.size() > this.getAssignmentLimit()) {
 			ArrayList<ILDecision> cut = new ArrayList<ILDecision>(temp.subList(0, this.getAssignmentLimit()));
 			setDecisionsAssigned(cut);
+		}
+		else if(temp.size() + this.getNumberOfAssignedDecisions() >= this.getAssignmentLimit()) {
+			ArrayList<ILDecision> cut = new ArrayList<ILDecision>(temp.subList(0, this.getAssignmentLimit()-this.getNumberOfAssignedDecisions()));
+			getDecisionsAssigned().addAll(cut);
+			this.numberOfAssignedDecisions = getNumberOfAssignedDecisions()+cut.size();
 		}
 		else {
 			setDecisionsAssigned(temp);

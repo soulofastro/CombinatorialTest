@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
  * 
  */
 
+import control.ChangeILDecision;
+
 public class ItemLocationTreeMaker 
 { 
 	
@@ -27,16 +29,9 @@ public class ItemLocationTreeMaker
     	ArrayList<Location> locations = new ArrayList<Location>(locationList);
     	ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>();
     	
-    	//NOTE: items in file/list must be arranged from most to least constrained. (most to least properties)
-    	printItemList(items);
-    	
-    	
     	ItemAssignmentTracker.newTracker(items);
     	ItemAssignmentTracker.add(new Item("null"));
     	ItemAssignmentTracker.add(new Item("No item assigned"));
-    	
-    	printLocationList(locations);
-
     	
     	/* constraints check */
 //    	ConstraintsCheck.generateCheckWithoutAND(items,locations);
@@ -48,53 +43,19 @@ public class ItemLocationTreeMaker
     	ArrayList<Item> itemClone = new ArrayList<Item>(items);	
     	decisionNumber = generateDecisionTree(locations, itemClone);
     	
-    	/* Display Locations and item assigned to each location */
-//    	printDecisionTree(decisionNumber);
-    	printPlainDecisionTree(decisionNumber);
-
-    	
-    	/* Change a decision and display updated list */
-    	/* arguments are changeDecisionSelection("where you want to put the new item", "the new item you want to insert", "complete location list")*/
-    	/* TEST CASE 1 - add brand new item */
-//    	Item alpha_2 = new Item("Alpha_2");
-//    	String[] AlphaProp = {"Alpha_2", "NA"};
-//    	alpha_2.setItemProperties(AlphaProp);
-//    	decisionNumber = changeDecisionSelection(locations.get(1), alpha_2, locations, decisionNumber);
-    	
-    	/* TEST CASE 2 - change first appearance of item */
-//    	System.out.println("TEST 2: Change first decision. Update rest of list");
-//    	Item alpha = decisionNumber.get(6).getItemAssigned();
-//    	System.out.println("Changing item at "+locations.get(1).getLocationName()+" to "+alpha.getItemName());
-//    	decisionNumber = changeDecisionSelection(locations.get(1), alpha, locations, decisionNumber);
-    	
-//    	/* TEST CASE 3a - change earlier appearance of item */
-//    	Item charlie = decisionNumber.get(0).getItemAssigned();
-//    	System.out.println("Changing item at "+locations.get(5).getLocationName()+" to "+charlie.getItemName());
-//    	decisionNumber = changeDecisionSelection(locations.get(5), charlie, locations, decisionNumber);
-//    	/* TEST CASE 3b - change earlier appearance of item */
-//    	Item beta = decisionNumber.get(1).getItemAssigned();
-//    	System.out.println("Changing item at "+locations.get(6).getLocationName()+" to "+beta.getItemName());
-//    	decisionNumber = changeDecisionSelection(locations.get(6), beta, locations, decisionNumber);
-    	
-    	/* TEST CASE 4 - add new item to location that does not meet criteria */
-    	// don't care about this anymore
-//    	Item charlie = decisionNumber.get(0).getItemAssigned();
-//    	decisionNumber = changeDecisionSelection(locations.get(2), charlie, locations, decisionNumber);
-    	
-    	/* Display Locations and item assigned to each location after testing change */
-//    	System.out.println("\nList after test case change:\n");
-//    	printDecisionTree(decisionNumber);
-    	
-    	System.out.println();
+    	return decisionNumber;
+    }
+	
+	public static void printItemAssStatus(ArrayList<Item> items) {
+		System.out.println();
     	for (Item item : items) {
     		System.out.println("Item Name: "+ item.getItemProperties().get(0)+", Times assigned: "+item.getNumberOfTimesAssigned()+" of "+item.getAssignmentLimit());
     	}
     	System.out.println("*************************************************************************************");
-    	
-    	return decisionNumber;
-    }
+	}
+	
 
-	private static void printLocationList(ArrayList<Location> locations) {
+	public static void printLocationList(ArrayList<Location> locations) {
     	for (Location location: locations) {
     		System.out.print("Location name: "+ location.getLocationCriteria().get(0)+",Constraints:->");
     		for (int i=1; i<location.getLocationCriteria().size();i++) {
@@ -107,7 +68,7 @@ public class ItemLocationTreeMaker
 		
 	}
 
-	private static void printItemList(ArrayList<Item> items) {
+	public static void printItemList(ArrayList<Item> items) {
 		for (Item item : items) {
     		System.out.print("Item Name: "+ item.getItemProperties().get(0)+", Constraints:->");
     		for (int i=1;i<item.getItemProperties().size();i++) {
@@ -121,7 +82,7 @@ public class ItemLocationTreeMaker
 	}
 
 	/* This Method prints the linked list decision tree */
-	private static void printDecisionTree(ArrayList<ILDecision> decisionNumber) {
+	public static void printDecisionTree(ArrayList<ILDecision> decisionNumber) {
     	try {
 			for(int i=0; i<decisionNumber.size(); i++) {	
 				Integer y = i+1;
@@ -144,20 +105,14 @@ public class ItemLocationTreeMaker
 		
 	}
 	/* This Method prints the linked list decision tree in ascending order*/
-	private static void printPlainDecisionTree(ArrayList<ILDecision> decisionNumber) {
+	public static void printPlainDecisionTree(ArrayList<ILDecision> decisionNumber) {
 		ArrayList<ILDecision> dTree = new ArrayList<ILDecision>(decisionNumber);
 		
 //		Collections.sort(dTree,(decision1, decision2) -> Integer.parseInt(decision1.getLocation().getLocationName()) - Integer.parseInt(decision2.getLocation().getLocationName()));		
     	try {
 			for(int i=0; i<dTree.size(); i++) {	
 				Integer y = i+1;
-				System.out.println("Decision " + y.toString() +", Name: "+ dTree.get(i).getDecisionName()+ ", Location-> "+ dTree.get(i).getLocation().getLocationName() + ", item-> "+ dTree.get(i).getDecisionSelected());
-//				if(!dTree.get(i).getDecisionSelected().contentEquals("No item assigned")) {
-//					System.out.print("		Matched properties when this decision was made: ");
-//					for(String match: dTree.get(i).getMatches()) {System.out.print(" "+ match);}
-//					System.out.println();
-//				}	
-//			System.out.println();
+				System.out.println("ILDecision " + y.toString() +", Name: "+ dTree.get(i).getDecisionName()+ ", Location-> "+ dTree.get(i).getLocation().getLocationName() + ", item-> "+ dTree.get(i).getDecisionSelected());
 			}
     	}
     	catch(Exception e) {
@@ -273,7 +228,7 @@ public class ItemLocationTreeMaker
 //	    				System.out.println("LAST CHANCE TO ASSIGN "+singlet.getItemName()+" TO "+ finalPass.getLocation().getLocationName());
 	    				finalPass.getConstrainedChoices().clear();
 	    				//System.out.println("LINE 227 TRYING TO FIX NO ITEM ASSIGNED");
-	    				decisionTree = changeDecisionSelection(finalPass.getLocation(), singlet, locations, decisionTree);
+	    				decisionTree = ChangeILDecision.changeDecisionSelection(finalPass.getLocation(), singlet, locations, decisionTree);
 	    			}    			
 	    			else {
 	    				for(Item iter: newList) { System.out.print(iter.getItemName()+", ");}
@@ -342,213 +297,5 @@ public class ItemLocationTreeMaker
 		}
 		return decisionNumber;
 	}
-
-	/** not sure how getItemAssigned().getItemProperties().addAll(1, getLocation().getLocationCriteria()); in "decision" class will alter when I have to change a decision **/
-	// keep an eye out for odd behavior!
-	/* THIS IS WHERE I CHANGE A DECISION AT A LOCATION */
-	/* change item assigned to this location to newItem */
-	/* arguments are ("where you want to put the new item", "the new item you want to insert", "complete location list")*/
-	public static ArrayList<ILDecision> changeDecisionSelection(Location location, Item newItem, ArrayList<Location> locationList, ArrayList<ILDecision> decisionTree) {
-		ArrayList<ILDecision> decisionNumber = new ArrayList<ILDecision>(decisionTree);
-		boolean meetsCriteria = true;
-		Integer locationIndex = null;
-		Item oldItem;
-		
-		// First, find location in decision list
-		for(int i = 0; i<decisionNumber.size();i++) {
-			if(decisionNumber.get(i).getLocation().getLocationName().equals(location.getLocationName())) {
-				locationIndex = i;
-				break;
-			}
-		}
-//		BYPASS CRITERIA CHECK COMPLETELY (for now?) this should avoid frustration later on
-		
-//		for(int i=0; i<decisionNumber.size(); i++) {
-//			if(decisionNumber.get(i).getLocation().equals(location)) {
-//		// Second, I check to make sure the new item's preferences fits the location's criteria.
-//		//		if so, continue
-//        //		if not tell user they can't assign that item to that location.
-//				
-//				
-//				
-//				for(int j=0; j<newItem.getItemProperties().size(); j++) {
-//					for(int k=0; k<decisionNumber.get(i).getLocation().getLocationCriteria().size(); k++) { // compare item properties to location criteria
-//						// implement array compare so C1 = C1&C1 ?
-////						if(newItem.getItemProperties().get(j).equals(decisionNumber.get(i).getLocation().getLocationCriteria().get(k)) || newItem.getItemProperties().get(j).equals("[NA]")) {
-//						if(arrayCompare(newItem.getItemProperties().get(j),decisionNumber.get(i).getLocation().getLocationCriteria().get(k)) || newItem.getItemProperties().get(j).equals("[NA]")) {
-//							meetsCriteria = true; // if there's at least one match, item meets criteria
-//							locationIndex = i;
-//						}
-//					}
-//				}
-//				
-//				
-//				
-//				if(!meetsCriteria) {
-//					System.out.println(newItem.getItemName()+" does not meet location "+decisionNumber.get(i).getLocation().getLocationName() +" criteria. Returning to menu.");
-//					return decisionNumber;
-//				}
-//			}
-//		}
-		
-		if(meetsCriteria) {
-		// Third, I need to see how "early" this decision is
-		//		if I want to assign a new item to a later decision/location
-		//			if it's not in the original unconstrained list, it's a brand new item.
-		//			then just update the assigned item at the location 
-			    if(!decisionNumber.get(0).getUnconstrainedChoices().contains(newItem)) {
-			    	System.out.println("^^^^^^you are at line 342. Unconstrained choices doesn't contain new item.\n");
-			    	decisionNumber.get(locationIndex).getConstrainedChoices().add(newItem);
-			    	
-			    	ItemAssignmentTracker.itemAssCount.add(newItem);
-			    	// add new item and increase its assignment count by 1
-			    	ItemAssignmentTracker.increaseCounts(newItem);
-					/*if(!newItem.getItemName().equals("null")||!newItem.getItemName().equals("No item assigned")){
-						Integer index = AssignmentTracker.itemAssCount.indexOf(newItem);
-						Integer count = AssignmentTracker.itemAssCount.get(index).getNumberOfTimesAssigned();
-						count += 1;
-						AssignmentTracker.itemAssCount.get(AssignmentTracker.itemAssCount.indexOf(newItem)).setNumberOfTimesAssigned(count);
-					}*/
-					
-		    	    decisionNumber.get(locationIndex).setItemAssigned(newItem);
-			    	// maybe give the user the option to regenerate the list from here? 
-			    	// changing this choice does not immediately effect later decisions
-		    	    return decisionNumber;
-			    }
-		//		I must check and see if that item was assigned earlier (if new item is in location's constrained list and count < max, its ok to assign)
-		// 		
-			    
-			    else if (locationIndex <= findEarliestAssignment(decisionNumber, newItem)) {
-			    	System.out.println("^^^^^^you are at line 414. You are changing the first instance of an item. \n");
-		//			if it wasn't assigned earlier, then I change this decision
-		//				I assign the new item to this location
-			    	// decrease count of old item and then assign new Item and increase its count.
-			    	ItemAssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned());
-					
-					decisionNumber.get(locationIndex).setItemAssigned(newItem);
-
-		//					then I rebuild this decision list starting after this decision (making sure to remove the new item from the unconstrained list first)
-					if(ItemAssignmentTracker.atLimit(newItem)) {
-						for(int i = locationIndex; i< decisionNumber.size(); i++) {
-							decisionNumber.get(i).getUnconstrainedChoices().remove(newItem);
-						}
-					}
-					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(locationIndex).getUnconstrainedChoices());
-					
-					for(int i = locationIndex+1; i<decisionNumber.size();i++) {
-						// I need to decrease each corresponding items assignment count by one in itemAssCount for each appearance in the rest of decisionNumber
-						ItemAssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
-					}
-					ItemAssignmentTracker.increaseCounts(newItem);
-					
-					locationIndex = locationIndex + 1;
-					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(locationIndex, locationList.size()));
-					decisionNumber.subList(locationIndex, decisionNumber.size()).clear();
-					
-//					System.out.println("CLEAR PARTIAL LIST FROM "+locationIndex+" TO "+decisionNumber.size());
-					//TODO why is this todo here?
-//					printPlainDecisionTree(decisionNumber);
-					
-					decisionNumber.addAll(generateDecisionTree(newLocationList,newItemList));
-					return decisionNumber;
-				}
-				else {
-		//			if it was assigned earlier, then I change that earlier decision and make this later decision/location item assignment a hard constraint
-					System.out.println("^^^^^^^you are at line 450. Making hard constraint at location.\n");
-					ArrayList<Item> manAss = new ArrayList<Item>();
-					manAss.add(newItem);
-					decisionNumber.get(locationIndex).getLocation().getMandatoryAssignments().addAll(0,manAss);
-					
-					ItemAssignmentTracker.decreaseCounts(decisionNumber.get(locationIndex).getItemAssigned()); // decrease count of currently assigned item
-					Integer earliestLocationIndex = findEarliestAssignment(decisionNumber, newItem);
-					//Integer earliestLocationIndex = findLastAssignment(decisionNumber, newItem);
-					
-		//				I assign the new item to this location and add the old assignment back to the unconstrained choices list
-					oldItem = decisionNumber.get(earliestLocationIndex).getItemAssigned();
-					
-					//System.out.println("I am changing "+location.getLocationName()+" to "+newItem.getItemName());
-					
-					ItemAssignmentTracker.resetCount(oldItem);
-					decisionNumber.get(earliestLocationIndex).setDecisionSelection(decisionNumber.get(earliestLocationIndex).getConstrainedChoices()/*, oldItem*/);
-					//decisionNumber.get(earliestLocationIndex).setItemAssigned(newItem);
-					
-					//System.out.println("It was assigned earlier, so I have to change "+ decisionNumber.get(earliestLocationIndex).getLocation().getLocationName()+" to "+ decisionNumber.get(earliestLocationIndex).getItemAssigned().getItemName());
-					
-					if(!decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().contains(oldItem)) {
-						decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices().add(oldItem);
-						//AssignmentTracker.decreaseCounts(oldItem);
-					}
-					/*else if(AssignmentTracker.checkCount(oldItem)) {
-						AssignmentTracker.increaseCounts(oldItem);
-					}*/
-					/*if(AssignmentTracker.atLimit(newItem)) {
-						decisionNumber.get(earliestLocationIndex+1).getUnconstrainedChoices().remove(newItem);
-					}*/
-		//					then I rebuild my list starting from that earlier location
-					ArrayList<Item> newItemList = new ArrayList<Item>(decisionNumber.get(earliestLocationIndex).getUnconstrainedChoices());
-//					earliestLocationIndex++;
-			
-					
-					for(int i = earliestLocationIndex; i<decisionNumber.size();i++) {
-						// I need to decrease each corresponding items assignment count by one in itemAssCount for each appearance in the rest of decisionNumber
-						ItemAssignmentTracker.decreaseCounts(decisionNumber.get(i).getItemAssigned());
-//						System.out.println("DECREASING COUNT FOR "+decisionNumber.get(i).getItemAssigned().getItemName()+" to " + AssignmentTracker.showCount(decisionNumber.get(i).getItemAssigned()));
-					}
-					
-					ArrayList<Location> newLocationList = new ArrayList<Location>(locationList.subList(earliestLocationIndex, locationList.size()));
-					decisionNumber.subList(earliestLocationIndex, decisionNumber.size()).clear();			
-					decisionNumber.addAll(generateDecisionTree(newLocationList,newItemList));
-					return decisionNumber;
-				}
-		}
-		return decisionNumber;
-			
-		
-	}
-	
-	/* This methods finds the location index for earliest assignment of newItem */
-    private static Integer findEarliestAssignment(ArrayList<ILDecision> decisionList, Item newItem) {
-    	Integer Index = null;
-    	for(int i=0; i<decisionList.size(); i++) {
-    		if(decisionList.get(i).getItemAssigned().equals(newItem)) {
-    			Index = i;
-    			break;
-    		}
-    	}
-    	
-		return Index;
-	}
-//    private static Integer findLastAssignment(ArrayList<decision> decisionList, Item newItem) {
-//    	Integer locationIndex = null;
-//    	for(int i=0; i<decisionList.size(); i++) {
-//    		if(decisionList.get(i).getItemAssigned().equals(newItem)) {
-//    			locationIndex = i;
-//    		}
-//    	}
-//    	
-//		return locationIndex;
-//	}
-//    
-//	private static boolean arrayCompare(String propString, String critString) {
-//		String[] prop = propString.split("&");
-//		String[] crit = critString.split("&");
-//		prop = Arrays.stream(prop).distinct().toArray(String[]::new);
-//		crit = Arrays.stream(crit).distinct().toArray(String[]::new);
-//		
-//		int matches = 0;
-//		if(prop.length==crit.length) {
-//			for(int i=0; i<prop.length; i++) {
-//				for(int j=0; j<crit.length;j++) {
-//					if(prop[i].equalsIgnoreCase(crit[j])) {
-//						matches = matches + 1;
-//					}
-//				}
-//			}
-//		}
-//		if(matches == prop.length)
-//			return true;
-//		else
-//			return false;
-//	}
 
 } 

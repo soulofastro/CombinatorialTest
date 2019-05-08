@@ -68,6 +68,8 @@ public class CurrentState {
 	}
 	
 	public ArrayList<ILDecision> getILtree(){
+		//TODO
+		Collections.sort(itemLocationTree, ILDecision.PropComparator);
 		return itemLocationTree;
 	}
 	

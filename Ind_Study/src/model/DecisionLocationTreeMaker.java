@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
+import control.ChangeDLDecision;
+
 public class DecisionLocationTreeMaker {
 
 	public static ArrayList<ILDecision> descisionsDuplicate = new ArrayList<ILDecision>();
@@ -12,36 +14,28 @@ public class DecisionLocationTreeMaker {
 		
 		ArrayList<DLDecision> DLtree = new ArrayList<DLDecision>();
 		ArrayList<ILDecision> ILtreeClone = new ArrayList<ILDecision>(ILtree);
+		//TODO
+		//sort ILtreeClone from most to least constrained
+//		Collections.sort(ILtreeClone, ILDecision.PropComparator);
 		
 		DecisionAssignmentTracker.newTracker(ILtree);
 		DecisionAssignmentTracker.add(new ILDecision("null"));
 		DecisionAssignmentTracker.add(new ILDecision("No decision assigned"));
 		
-		printILDecisionList(ILtree);
-		
-		printLocationList(timeSlots);
-		
 		DLtree = generateDecisionTree(timeSlots, ILtreeClone);
 		
-//		printDecisionTree(DLtree);
-		printPlainDecisionTree(DLtree);
-		
-		/*
-		 *  change decision testing goes here
-		 * 
-		 * 
-		 */
-		
+		return DLtree;
+	}
+	
+	public static void printILDAssStatus(ArrayList<ILDecision> ILtree) {
 		System.out.println();
 		for (ILDecision ILD : ILtree) {
     		System.out.println("ILD Name: "+ ILD.getDecisionName()+", Times assigned: "+ILD.getNumberOfTimesAssigned()+" of "+ILD.getAssignmentLimit());
     	}
     	System.out.println();
-		
-		return DLtree;
 	}
 	
-	private static void printDecisionTree(ArrayList<DLDecision> decisionNumber) {
+	public static void printDecisionTree(ArrayList<DLDecision> decisionNumber) {
     	try {
 			for(int i=0; i<decisionNumber.size(); i++) {	
 				Integer y = i+1;
@@ -69,13 +63,13 @@ public class DecisionLocationTreeMaker {
 		
 	}
 	
-	private static void printPlainDecisionTree(ArrayList<DLDecision> decisionNumber) {
+	public static void printPlainDecisionTree(ArrayList<DLDecision> decisionNumber) {
 		ArrayList<DLDecision> dTree = new ArrayList<DLDecision>(decisionNumber);
 		
     	try {
 			for(int i=0; i<dTree.size(); i++) {	
 				Integer y = i+1;
-				System.out.print("Decision " + y.toString() +", Location-> "+ dTree.get(i).getLocation().getLocationName() + ", ILDs-> ");
+				System.out.print("DLDecision " + y.toString() +", Location-> "+ dTree.get(i).getLocation().getLocationName() + ", ILDs-> ");
 				for (ILDecision selected: dTree.get(i).getDecisionsAssigned()) {
 					System.out.print(selected.getDecisionName()+", ");
 				}
@@ -89,7 +83,7 @@ public class DecisionLocationTreeMaker {
 		
 	}
 	
-	private static void printILDecisionList(ArrayList<ILDecision> decisions) {
+	public static void printILDecisionList(ArrayList<ILDecision> decisions) {
     	for (ILDecision decision: decisions) {
     		System.out.print("Decision name: "+ decision.getDecisionName()+", Constraints:->");
     		for (int i=0; i<decision.getItemLocationMatches().size();i++) {
@@ -106,7 +100,7 @@ public class DecisionLocationTreeMaker {
 		
 	}
 	
-	private static void printLocationList(ArrayList<Location> locations) {
+	public static void printLocationList(ArrayList<Location> locations) {
     	for (Location location: locations) {
     		System.out.print("Location name: "+ location.getLocationCriteria().get(0)+",Constraints:->");
     		for (int i=1; i<location.getLocationCriteria().size();i++) {
@@ -119,7 +113,8 @@ public class DecisionLocationTreeMaker {
 		
 	}
 
-	private static ArrayList<DLDecision> generateDecisionTree(ArrayList<Location> timeSlots, ArrayList<ILDecision> ILtreeClone) {
+	@SuppressWarnings("unused")
+	public static ArrayList<DLDecision> generateDecisionTree(ArrayList<Location> timeSlots, ArrayList<ILDecision> ILtreeClone) {
 		// this is a mirror of method in ILTreeMaker
 		// items --> ILtreeClone
 		// locations --> timeSlots
@@ -205,7 +200,7 @@ public class DecisionLocationTreeMaker {
     			}
     		}
     	}
-    	
+    	if(false) { // I don't think I need to switch this on. I need to test first.
        	for(DLDecision finalPass: decisionTree) {
     		//System.out.println("xxxx loc: "+finalPass.getLocation().getLocationName());
     		if(finalPass.getDecisionsAssigned().size() <= 0) {
@@ -226,8 +221,7 @@ public class DecisionLocationTreeMaker {
 //	    				System.out.println("LAST CHANCE TO ASSIGN "+singlet.getItemName()+" TO "+ finalPass.getLocation().getLocationName());
 	    				finalPass.getConstrainedChoices().clear();
 	    				//System.out.println("LINE 227 TRYING TO FIX NO ITEM ASSIGNED");
-	    				// TODO implement this later
-	    				// decisionTree = changeDecisionSelection(finalPass.getLocation(), singlet, locations, decisionTree);
+	    				 decisionTree = ChangeDLDecision.changeDecisionSelection(finalPass.getLocation(), singlet, timeSlots, decisionTree);
 	    			}    			
 //	    			else {
 //	    				for(Item iter: newList) { System.out.print(iter.getItemName()+", ");}
@@ -235,6 +229,7 @@ public class DecisionLocationTreeMaker {
 //	    			}
     			}
     		}
+    	}
     	}
        	
        	
@@ -290,8 +285,12 @@ public class DecisionLocationTreeMaker {
 			}
 		}
 		
+//		System.out.println("last node unconstrained list");
+//		printILDecisionList(lastNodeUnconstrainedList);
+		
 		for(int i=0; i<decisions.size(); i++) {
-			if(decisions.get(i).getDecisionsAssigned().contains(new ILDecision("No decision assigned"))) {
+			if(decisions.get(i).getDecisionsAssigned().contains(new ILDecision("No decision assigned")) || decisions.get(i).getAssignmentLimit() > decisions.get(i).getNumberOfAssignedDecisions()) {
+				decisions.get(i).getDecisionsAssigned().remove(new ILDecision("No decision assigned"));
 				decisions.get(i).getLowConfidenceFit(lastNodeUnconstrainedList);
 				ArrayList<ILDecision> decisionAssignd = new ArrayList<ILDecision>(decisions.get(i).getDecisionsAssigned());
 				for(int j=i+1; j<decisions.size();j++) {
@@ -306,24 +305,5 @@ public class DecisionLocationTreeMaker {
 		
 		return decisions;
 	}
-	
-	public static ArrayList<ILDecision> changeDecisionSelection(Location location, Item newItem, ArrayList<Location> locationList, ArrayList<ILDecision> decisionTree) {
-		//TODO
-		return null;
-	}
-	
-    private static Integer findEarliestAssignment(ArrayList<DLDecision> decisionList, DLDecision newDecision) {
-    	Integer Index = null;
-    	for(int i=0; i<decisionList.size(); i++) {
-    		for(int j=0; j<decisionList.get(i).getDecisionsAssigned().size();j++) {
-	    		if(decisionList.get(i).getDecisionsAssigned().get(j).equals(newDecision)) {
-	    			Index = i;
-	    			break;
-	    		}
-    		}
-    	}
-    	
-		return Index;
-    }
 	
 }

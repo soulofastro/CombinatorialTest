@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -19,6 +20,7 @@ public class ILDecision {
 	private String decisionName;
 	private Integer assignmentLimit = 1; // The limit on how many times this decision can be assigned
 	private Integer numberOfTimesAssigned = 0; // The number of times this decision has been assigned to a location
+	private Integer numberOfConstraints = 0;
 	
 	/* Given a location, select an item from a list */
 	public ILDecision(Location location) {
@@ -296,6 +298,7 @@ public class ILDecision {
 				this.setDecisionName(this.location.getLocationName()+"_"+item.getItemName());
 				getMatches();
 				getPartialMatches();
+				setNumberOfConstraints();
 			}
 		}
 	}
@@ -499,8 +502,11 @@ public class ILDecision {
 	
 	public void getLowConfidenceFit(ArrayList<Item> unassigned) {
 		if(unassigned.size()>0 && ItemAssignmentTracker.checkCount(unassigned.get(0))) {
+			// TODO Combine Item and Location properties when nothing matches
+			getItemLocationPartialMatches().addAll(unassigned.get(0).getItemProperties().subList(1, unassigned.get(0).getItemProperties().size()));
+			getItemLocationPartialMatches().addAll(location.getLocationCriteria().subList(1, location.getLocationCriteria().size()));
+						
 			setItemAssigned(unassigned.get(0));	
-		
 			ItemAssignmentTracker.increaseCounts(unassigned.get(0));
 		}
 	}
@@ -566,8 +572,28 @@ public class ILDecision {
 		
 	}
 
-	public Integer getNumberOfConstraints() {
-		Integer size = getItemLocationMatches().size()+getItemLocationPartialMatches().size();
-		return size;
+	public void setNumberOfConstraints() {
+		this.numberOfConstraints = getItemLocationMatches().size()+getItemLocationPartialMatches().size();
 	}
+
+	public Integer getNumberOfConstraints() {
+		return numberOfConstraints;
+	}
+	
+	public int compareTo(Object arg0) {
+		
+		int compareLength=((ILDecision)arg0).getNumberOfConstraints();
+		if(compareLength > 0)
+			return this.numberOfConstraints-compareLength;
+		else
+			return 0;
+	}
+	
+	public static Comparator<ILDecision> PropComparator = new Comparator<ILDecision>(){
+		public int compare(ILDecision item1, ILDecision item2) {
+				Integer item1Length = item1.getNumberOfConstraints();
+				Integer item2Length = item2.getNumberOfConstraints();
+				return item1Length.compareTo(item2Length);
+		}
+	};
 }
