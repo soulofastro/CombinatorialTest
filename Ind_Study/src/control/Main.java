@@ -24,36 +24,39 @@ import model.CurrentState;
 import model.DLDecision;
 import model.DecisionLocationTreeMaker;
 import model.ItemLocationTreeMaker;
+import view.MainMenu;
 
 public class Main {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, Exception {
 		CurrentState m = new CurrentState("Isimple.txt","Lsimple.txt","Tsimple.txt"); // for simple testing
+//		MainMenu v = new MainMenu(m);
+		Controller c = new Controller(new MainMenu(m),m);
+		c.initController();
 		/* other constructor for current state is CurrentState(itemFileName, locationFileName, timeSlotsFileName) */
 		
-		printCurrentState(m);
-		
+//		printCurrentState(m);
 		runILDTestCases(m);
 		runDLDTestCases(m);
 	}
 
 	private static void printCurrentState(CurrentState m) {
-//		ItemLocationTreeMaker.printItemList(m.getItems());
-//		ItemLocationTreeMaker.printLocationList(m.getLocations());
+		ItemLocationTreeMaker.printItemList(m.getItems());
+		ItemLocationTreeMaker.printLocationList(m.getLocations());
 //		ItemLocationTreeMaker.printDecisionTree(m.getILtree());
 		ItemLocationTreeMaker.printPlainDecisionTree(m.getILtree());
-//		ItemLocationTreeMaker.printItemAssStatus(m.getItems());
+		ItemLocationTreeMaker.printItemAssStatus(m.getItems());
 		System.out.println();
-//		DecisionLocationTreeMaker.printILDecisionList(m.getILtree());
-//		DecisionLocationTreeMaker.printLocationList(m.getTimeSlots());
+		DecisionLocationTreeMaker.printILDecisionList(m.getILtree());
+		DecisionLocationTreeMaker.printLocationList(m.getTimeSlots());
 //		DecisionLocationTreeMaker.printDecisionTree(m.getDLtree());
 		DecisionLocationTreeMaker.printPlainDecisionTree(m.getDLtree());
-//		DecisionLocationTreeMaker.printILDAssStatus(m.getILtree());
+		DecisionLocationTreeMaker.printILDAssStatus(m.getILtree());
 		
-//    	for (DLDecision DLD : m.getDLtree()) {
-//    		System.out.println("DLD Name: "+ DLD.getDecisionName() +", Decisions assigned: "+DLD.getNumberOfAssignedDecisions()+" of "+DLD.getAssignmentLimit());
-//    	}
-//    	System.out.println();
+    	for (DLDecision DLD : m.getDLtree()) {
+    		System.out.println("DLD Name: "+ DLD.getDecisionName() +", Decisions assigned: "+DLD.getNumberOfAssignedDecisions()+" of "+DLD.getAssignmentLimit());
+    	}
+    	System.out.println();
 	}
 
 	private static void runDLDTestCases(CurrentState m) {
